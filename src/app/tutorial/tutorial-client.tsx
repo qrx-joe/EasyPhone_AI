@@ -24,6 +24,7 @@ import { useState } from 'react'
 
 import type { Tutorial } from '@/domain/tutorial/tutorial'
 import { SpeakButton } from '@/lib/speech/speak-button'
+import { SpeechRateControl, useSpeechRate } from '@/lib/speech/speech-rate'
 
 interface Props {
   text: string
@@ -34,6 +35,8 @@ export function TutorialClient({ text, tutorial }: Props) {
   const [currentStepIndex, setCurrentStepIndex] = useState(0)
   const [showAlternative, setShowAlternative] = useState(false)
   const [showResetWarning, setShowResetWarning] = useState(false)
+  // 语速档位(持久化到 localStorage,跨页面/跨刷新保留)
+  const { rate: speechRate } = useSpeechRate()
 
   const isCompleted = currentStepIndex >= tutorial.steps.length
   const totalSteps = tutorial.steps.length
@@ -56,6 +59,11 @@ export function TutorialClient({ text, tutorial }: Props) {
         </p>
         <h1 className="text-2xl sm:text-3xl font-bold">{tutorial.title}</h1>
       </header>
+
+      {/* 语速控制(适老化,持久化) */}
+      <section className="w-full mb-4">
+        <SpeechRateControl />
+      </section>
 
       {/* 进度指示器:大字号 + 进度条 */}
       <section className="w-full mb-6">
@@ -100,6 +108,7 @@ export function TutorialClient({ text, tutorial }: Props) {
         <div className="mt-5">
           <SpeakButton
             text={showAlternative && step.alternative ? step.alternative : step.instruction}
+            options={{ rate: speechRate }}
           />
         </div>
       </section>
