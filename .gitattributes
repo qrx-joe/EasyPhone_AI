@@ -1,0 +1,25 @@
+# Auto-detect text files and normalize line endings on commit.
+# Eliminates the "LF will be replaced by CRLF" warnings on Windows.
+* text=auto eol=lf
+
+# Explicitly enforce LF for shell/source files (defensive).
+*.sh        text eol=lf
+*.bash      text eol=lf
+*.md        text eol=lf
+*.ts        text eol=lf
+*.tsx       text eol=lf
+*.js        text eol=lf
+*.json      text eol=lf
+*.css       text eol=lf
+
+# Binary files (no normalization).
+*.png       binary
+*.jpg       binary
+*.jpeg      binary
+*.gif       binary
+*.ico       binary
+*.webp      binary
+*.woff      binary
+*.woff2     binary
+*.ttf       binary
+*.eot       binary
