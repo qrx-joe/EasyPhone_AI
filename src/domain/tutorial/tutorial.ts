@@ -21,14 +21,25 @@ import type { RiskLevel } from '../risk/types.ts'
  *
  * - title:       5-10 字,告诉老人「这一步要做什么」。
  * - instruction: 1-2 句,具体到按钮/菜单名称(用「微信」→「我」→「设置」这种导航描述)。
+ * - alternative: 替代表达(可选)。当老人点了「没看到」按钮时展示 —— 用另一种说法
+ *               解释同一操作,照顾理解力不同的老人。
  *
- * 不存「替代表达」字段 —— 替代表达是 UI 层的 state(点了「没看到」才显示),
- * 不是数据层的属性。塞进 TutorialStep 会变成数据泥团。
+ * 设计取舍:alternative **应该** 放在数据层,不放 UI state。
+ * 理由(反 docs/05 §8「教程步骤到处复制」):
+ *   1. alternative 是教学内容,跟 instruction 同源,跟 step 强绑定 —— 放数据里更内聚
+ *   2. 放 UI state 会导致每个客户端组件各自维护「这个步骤的替代表达」副本,
+ *      多端(老年端 / 家人端 / 未来调试面板)要分别写,变冗余
+ *   3. 之前 v0 注释里说「这是数据泥团」是判断错了:数据泥团是「无关数据捆一起」,
+ *      而 instruction+alternative 是「同一概念的两个面向」,聚合反而更清晰
+ *   4. 按钮(好了/没看到/点错了)的**显隐**才是 UI state,跟 alternative 内容无关
+ *
+ * 不放 step 里的东西:按钮状态(显示/隐藏/加载中)、语音播报进度、用户操作历史。
  */
 export interface TutorialStep {
   readonly id: string
   readonly title: string
   readonly instruction: string
+  readonly alternative?: string
 }
 
 export interface Tutorial {
@@ -116,27 +127,34 @@ const TUTORIAL_WEIXIN_NO_SOUND: Tutorial = {
       id: 'wechat-no-sound-1',
       title: '打开微信',
       instruction: '在桌面上找到绿色的微信图标,点一下。',
+      alternative:
+        '退回到手机最开始的页面(就是显示时间的那一页),然后找绿色方块图标,上面写着「微信」。',
     },
     {
       id: 'wechat-no-sound-2',
       title: '点右下角「我」',
       instruction: '微信最下面有一排按钮,最右边那个写着「我」。',
+      alternative: '看微信屏幕最下面一行,有「微信」「通讯录」「发现」「我」,点最右边的「我」。',
     },
     {
       id: 'wechat-no-sound-3',
       title: '点「设置」',
       instruction: '在「我」的页面里,往下滑,找到「设置」两个字,点一下。',
+      alternative: '「我」的页面最上面是头像和名字,中间是各种功能,最下面能找到「设置」,点它。',
     },
     {
       id: 'wechat-no-sound-4',
       title: '点「聊天」',
       instruction: '在「设置」里,找到「聊天」两个字,点一下。',
+      alternative: '「设置」页面前几项是「账号与安全」「通用」「聊天」「隐私」之类,点「聊天」。',
     },
     {
       id: 'wechat-no-sound-5',
       title: '打开「通知」和「声音」',
       instruction:
         '在「聊天」里,找到「新消息通知」「语音和视频通话提醒」两项,后面的开关都打开。',
+      alternative:
+        '「聊天」里有「新消息通知」「语音和视频通话提醒」,每一项右边有个开关,点一下变成绿色就是打开了。',
     },
   ],
 }
@@ -157,23 +175,28 @@ const TUTORIAL_FONT_TOO_SMALL: Tutorial = {
       id: 'font-too-small-1',
       title: '打开手机的「设置」',
       instruction: '在桌面上找齿轮形状的图标,叫「设置」,点一下。',
+      alternative: '退回到手机首页,往四周找,有个齿轮形状的图标,就是「设置」。',
     },
     {
       id: 'font-too-small-2',
       title: '找「显示」',
       instruction:
         '在「设置」里找「显示」或「显示与亮度」,点进去。每个手机名字可能稍有不同。',
+      alternative: '「设置」里有一项叫「显示」或者「壁纸与显示」,点进去。',
     },
     {
       id: 'font-too-small-3',
       title: '找「字体大小」',
       instruction:
         '在「显示」里往下找,找到「字体大小」或「文字大小」,点进去。',
+      alternative:
+        '在「显示」里往下找,会有「字体大小」或「显示大小」,点进去。',
     },
     {
       id: 'font-too-small-4',
       title: '把滑块拉到最大',
       instruction: '页面下方有一个小滑块,把它从左拉到最右边,字就会变大了。',
+      alternative: '下面有个拉条,把它从左拉到最右,或者点右边的「A 大」「A 最大」按钮,字就变大了。',
     },
   ],
 }
