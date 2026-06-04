@@ -1,4 +1,26 @@
 /**
+ * [OPENPRD 文件说明书]
+ * ## 核心功能
+ * createHelpRequest 工厂 + buildHelpRequest 模板 + 「教给出去」安全 lint 测试。
+ *
+ * ## 输入
+ * 文件内 ad-hoc 输入(各类风险文本 / 伪造 risk / 空 summary / 空 suggestions)。
+ *
+ * ## 输出
+ * node --test 跑过的 pass/fail 计数(本文件 12 个 case,3 个 suite)。
+ *
+ * ## 定位
+ * help domain 的合同测试 + 安全 lint。**不**测序列化格式(那是 card-serialization.test.ts)。
+ *
+ * ## 依赖
+ * - `node:test` + `node:assert/strict`
+ * - `./help-request.ts` / `./help-templates.ts` (被测)
+ * - `../risk/classify-risk.ts` / `../question/question.ts`(辅助)
+ *
+ * ## 维护规则
+ * 改模板 / 改工厂必过这 12 个 case。"教给出去"安全 lint **绝对不能松**(防卡片教老人/家人把敏感信息给出去)。
+ */
+/**
  * HelpRequest 工厂 + 模板测试。
  *
  * 重点:

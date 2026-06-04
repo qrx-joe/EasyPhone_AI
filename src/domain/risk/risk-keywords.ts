@@ -1,4 +1,32 @@
 /**
+ * [OPENPRD 文件说明书]
+ * ## 核心功能
+ * 风险关键词数据源。~100 条关键词分 7 桶(money_transfer / code_or_password /
+ * remote_control / stranger_link / fake_identity / lottery_or_benefit /
+ * account_or_privacy),每条带 level + scenario + reason。
+ *
+ * ## 输入
+ * 无运行时输入;在模块加载时构造一次,冻结后导出。
+ *
+ * ## 输出
+ * - `RiskKeyword`: 单条关键词记录
+ * - `ScenarioTag`: 7 + 2 个场景标签
+ * - `RISK_KEYWORDS`: 全量关键词数组(冻结)
+ *
+ * ## 定位
+ * 风险分类器的"训练数据"层。逻辑在 `classify-risk.ts`,数据在这里。
+ * 增删关键词**只动这个文件**,不动 `classify-risk.ts`。
+ *
+ * ## 依赖
+ * 只依赖 `./types.ts` 的 `RiskLevel` 类型。
+ *
+ * ## 维护规则
+ * - 扩库按 `docs/07-risk-keywords-library.md` §11 三道闸:
+ *   真实漏报驱动 → 测试覆盖 → 老年用户测试;不凭想象写。
+ * - 改 level 必过 `classify-risk.test.ts` 的 16 个验收用例。
+ * - 不在这里写匹配逻辑(那是 classify-risk.ts 的事)。
+ */
+/**
  * 风险关键词库(MVP / Milestone 1 落地版)。
  *
  * 数据源:docs/07-risk-keywords-library.md 的 7 桶脑暴。

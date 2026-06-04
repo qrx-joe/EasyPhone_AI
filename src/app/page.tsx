@@ -1,6 +1,31 @@
 'use client'
 
 /**
+ * [OPENPRD 文件说明书]
+ * ## 核心功能
+ * 适老化入口页,提供语音/打字两种提问入口和 3 个常见问题快捷入口。
+ *
+ * ## 输入
+ * 用户点击语音/打字/常见问题按钮;文本来自 useState(textInput) 与 DEMO_CASES。
+ *
+ * ## 输出
+ * 跳转事件 —— 通过 routeToInput(router, text) 跳到 /confirm 或 /risk-alert;
+ * 当前模式态 mode 与 textInput(本地)。
+ *
+ * ## 定位
+ * 整个问答主流程的入口,负责把用户原始输入交给统一路由函数;
+ * 不做风险判断(由 @/domain/routing/user-routing 决定走哪条路)。
+ *
+ * ## 依赖
+ * next/navigation(useRouter)、@/domain/routing/user-routing(routeToInput)、
+ * @/lib/speech/voice-input-button(VoiceInputButton)、React useState。
+ *
+ * ## 维护规则
+ * 改路由分流时同步检查 @/domain/routing/user-routing 的单元测试;
+ * 新增 DEMO_CASES 同步在 src/app/tutorial/demo/page.tsx 加白名单。
+ */
+
+/**
  * 首页 — 入口页。
  *
  * 结构(C 决策 2026-06-04):

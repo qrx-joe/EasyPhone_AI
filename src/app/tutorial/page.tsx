@@ -1,4 +1,29 @@
 /**
+ * [OPENPRD 文件说明书]
+ * ## 核心功能
+ * 教程页 server 入口,匹配教程 + 没匹配时给兜底页,不直接断流程。
+ *
+ * ## 输入
+ * URL searchParams.text。
+ *
+ * ## 输出
+ * 匹配到教程 → <TutorialClient>;没匹配到 → <NoTutorialFound>;
+ * text 为空 → redirect('/')。
+ *
+ * ## 定位
+ * 教程路径的 server 入口,只做匹配与兜底;分步交互在 client 组件。
+ * 不做风险过滤 —— 高风险应已在前置路由被分流到 /risk-alert。
+ *
+ * ## 依赖
+ * next/navigation(redirect)、next/link、@/domain/tutorial/tutorial(findTutorial)、
+ * ./tutorial-client。
+ *
+ * ## 维护规则
+ * 改兜底页要保持「不直接 redirect、保留 text」以便老人改说法重试;
+ * 教程库变更后同步看 findTutorial 单测。
+ */
+
+/**
  * 教程页 —— 服务端分流 + 客户端分步交互。
  *
  * 数据流:

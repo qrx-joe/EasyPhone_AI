@@ -1,3 +1,26 @@
+/**
+ * [OPENPRD 文件说明书]
+ * ## 核心功能
+ * Next.js 根布局,声明站点元数据与视口策略。
+ *
+ * ## 输入
+ * 子组件 children(任意 ReactNode)。
+ *
+ * ## 输出
+ * <html lang="zh-CN"> + <body> 骨架;导出 metadata(标题/描述/formatDetection)
+ * 与 viewport(缩放策略)。
+ *
+ * ## 定位
+ * 全站最外层布局,被所有页面共享;管全局元信息和根容器 className。
+ *
+ * ## 依赖
+ * next(Metadata 类型)、./globals.css(设计令牌)。
+ *
+ * ## 维护规则
+ * 改 metadata 后在浏览器 DevTools 校验 Open Graph;viewport 改动要 e2e 验
+ * iOS Safari 不被双击放大跳屏。
+ */
+
 import type { Metadata } from 'next'
 import './globals.css'
 

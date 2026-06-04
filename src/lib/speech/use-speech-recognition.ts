@@ -1,6 +1,30 @@
 'use client'
 
 /**
+ * [OPENPRD 文件说明书]
+ * ## 核心功能
+ * 语音识别的 React hook:封装 start/stop/reset、状态机 idle/listening/ending、
+ * interim transcript 实时反馈、中文错误提示 3s 自动清空。
+ *
+ * ## 输入
+ * UseSpeechRecognitionOptions{factory?, lang?, onFinal?};factory 不传则用浏览器原生。
+ *
+ * ## 输出
+ * {state, transcript, errorMessage, isSupported, start, stop, reset};
+ * SpeechRecognitionState 类型。
+ *
+ * ## 定位
+ * voice-input-button 的状态机适配层;不做「按住说话」(改点一下 + 自动结束),
+ * interim transcript 弥补反馈。
+ *
+ * ## 依赖
+ * react hooks、./web-speech.ts(defaultSpeechRecognitionFactory / explainSpeechError / 类型)。
+ *
+ * ## 维护规则
+ * 改状态机要重读 useEffect 的 ref 解闭包陷阱;onFinal 触发后必须 handle.stop 防止重复。
+ */
+
+/**
  * 语音识别的 React 生命周期 hook。
  *
  * 状态机:

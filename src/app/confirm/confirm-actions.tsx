@@ -1,6 +1,27 @@
 'use client'
 
 /**
+ * [OPENPRD 文件说明书]
+ * ## 核心功能
+ * 确认页两个大按钮(client 组件):「是的,继续」推进教程、「不是,重新说」回首页。
+ *
+ * ## 输入
+ * props.text —— 用户原始问题(从父 server 组件透传)。
+ *
+ * ## 输出
+ * 路由事件 router.push(`/tutorial?text=...`) 与 router.push('/')。
+ *
+ * ## 定位
+ * 配合 confirm/page.tsx 的纯交互子组件;不持有业务状态,不读 URL。
+ *
+ * ## 依赖
+ * next/navigation(useRouter)。
+ *
+ * ## 维护规则
+ * 改跳转目标(去 tutorial 路径)要同步 review tutorial/page.tsx 的 query 约定。
+ */
+
+/**
  * 确认页交互按钮 — 拆出 client component,server 只读 query。
  */
 

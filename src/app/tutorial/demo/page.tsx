@@ -1,4 +1,27 @@
 /**
+ * [OPENPRD 文件说明书]
+ * ## 核心功能
+ * 教程 Demo 直链路由,把白名单 case 文本走完整生产路径(/confirm → /tutorial 或 /risk-alert)。
+ *
+ * ## 输入
+ * URL searchParams.case(白名单 key:wechat / font / space)。
+ *
+ * ## 输出
+ * 1 次 server redirect 到 /confirm(同生产路径);未知 case 兜底 redirect('/')。
+ *
+ * ## 定位
+ * 演示专用,只接受白名单 —— 防止随手拼 ?text= 绕过输入页;不渲染 UI。
+ * 走 buildRouteForInput 走生产路由,安全不变量自动生效。
+ *
+ * ## 依赖
+ * next/navigation(redirect)、@/domain/routing/user-routing(buildRouteForInput)。
+ *
+ * ## 维护规则
+ * 增删 demo case 同步更新 TUTORIAL_DEMO_CASES 与首页 DEMO_CASES 保持一致;
+ * 改路由策略要回归 buildRouteForInput 单测。
+ */
+
+/**
  * /tutorial/demo —— Demo 直链路由。
  *
  * 目的(同 docs/06 §6 M6 验收"三个 Demo 场景可点击跑通"):

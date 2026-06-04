@@ -1,4 +1,30 @@
 /**
+ * [OPENPRD 文件说明书]
+ * ## 核心功能
+ * QuestionRecord 类型 + `createQuestion()` 工厂。用户输入的"已分类"快照。
+ *
+ * ## 输入
+ * - `text`: 老人输入(必填,空抛错)
+ * - `source`: 'voice' | 'text' | 'demo'
+ * - `risk`: 已通过 `classifyRiskByRules()` 的 RiskClassification(必填)
+ *
+ * ## 输出
+ * - `QuestionRecord`: 冻结的对象(id + text + source + risk + createdAt)
+ * - `QuestionSource` 联合类型
+ *
+ * ## 定位
+ * 一旦被记为 QuestionRecord,就**已经过**分类。还没分类的"原始输入"应保持 string。
+ * **不允许**在风险页/routing 之外使用未分类的 string 走核心流程(防止绕过分流)。
+ *
+ * ## 依赖
+ * `../risk/types.ts` 的 `RiskClassification`。
+ *
+ * ## 维护规则
+ * - 改 createQuestion 的不变量必过 `question.test.ts`。
+ * - 工厂对非法输入**抛错**(不返回 null)—— 安全核心不留残缺态。
+ * - 不在这里写风险判断(那是 `risk/classify-risk.ts` 的事)。
+ */
+/**
  * 用户提出的一次问题。
  *
  * 设计原则(来自 docs/05 §3.1, §3.4, §4.1):

@@ -1,6 +1,29 @@
 'use client'
 
 /**
+ * [OPENPRD 文件说明书]
+ * ## 核心功能
+ * 「🔊 念给我听」按钮 UI:点击切 idle/speaking,unmount 与 text 变化时自动 cancel。
+ *
+ * ## 输入
+ * props{text, options?, className?, label?};options 透传到 speak(除 text/onEnd/onError)。
+ *
+ * ## 输出
+ * speak() 调用与 cancel 闭包;本地 state speaking、不支持时直接 return null(不渲染)。
+ *
+ * ## 定位
+ * 教程页/风险页共用的 TTS 按钮;不持有语速档位(由父组件传 options.rate);
+ * 浏览器不支持时**隐藏按钮**(不显示无效控件)。
+ *
+ * ## 依赖
+ * react hooks、./speech-synthesis.ts(speak / cancelSpeech / isSpeechSynthesisSupported)。
+ *
+ * ## 维护规则
+ * 改 cancel 清理逻辑要 e2e 验「切步骤还在念旧的」场景;
+ * 改 label 默认值要保持 emoji + 中文(适老化一致)。
+ */
+
+/**
  * 「🔊 念给我听」按钮 —— 调一次 speak() 念指定文本。
  *
  * 状态机:

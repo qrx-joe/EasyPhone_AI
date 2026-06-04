@@ -1,4 +1,32 @@
 /**
+ * [OPENPRD 文件说明书]
+ * ## 核心功能
+ * Tutorial / TutorialStep 类型 + `findTutorial()` 匹配 + `safeTutorialsFor()` 防御性过滤 + 首批 2 个教程库。
+ *
+ * ## 输入
+ * - `text`: 归一化后(小写 + trim)做 includes 匹配
+ * - `level`: 风险等级(给 `safeTutorialsFor` 过滤高风险教程)
+ *
+ * ## 输出
+ * - `Tutorial` / `TutorialStep`: 数据结构(title + instruction + 可选 alternative)
+ * - `findTutorial(text)`: 命中返回 Tutorial,未命中返回 null
+ * - `safeTutorialsFor(level)`: 低/中风险可见的教程列表
+ * - `TUTORIALS`: 冻结的教程数组
+ *
+ * ## 定位
+ * 教程库 = 人工维护的"白名单"(docs/05 §3.3)。AI 不自由编教程,**只改写**(M5)。
+ * 匹配按"关键词数量倒序"排序(更具体的优先)。
+ *
+ * ## 依赖
+ * `../risk/types.ts` 的 `RiskLevel`。
+ *
+ * ## 维护规则
+ * - 扩库按 docs/07 §11 三道闸(真实漏报驱动),不凭想象。
+ * - 改 `findTutorial` 匹配算法 = 改用户体验,**必须 review**。
+ * - `safeTutorialsFor` 是防御性过滤,即使 shouldStopGuidance 已分流,这里也再卡一次。
+ * - alternative 字段放数据不放 UI state(参 `tutorial-client.tsx` 的 rationale)。
+ */
+/**
  * 教程领域 —— 类型 + 匹配函数 + 首批教程库。
  *
  * 设计原则(来自 docs/05 §3.3 + §8 反「教程步骤到处复制」):

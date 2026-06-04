@@ -1,4 +1,27 @@
 /**
+ * [OPENPRD 文件说明书]
+ * ## 核心功能
+ * serializeHelpCard 序列化输出测试(产品签名/summary/suggestions 编号/风险等级/无 HTML/不泄露 keywords)。
+ *
+ * ## 输入
+ * 文件内造的 sample HelpRequest(各风险等级都有)。
+ *
+ * ## 输出
+ * node --test 跑过的 pass/fail 计数(本文件 9 个 case,1 个 suite)。
+ *
+ * ## 定位
+ * card-serialization 的合同测试。**纯 view 层**,只验证文本格式,
+ * 不验证求助卡的业务逻辑(那是 help.test.ts)。
+ *
+ * ## 依赖
+ * - `node:test` + `node:assert/strict`
+ * - `./card-serialization.ts` (被测)
+ * - 其他 help / risk 域模块(辅助构造)
+ *
+ * ## 维护规则
+ * 改序列化格式必过 9 个 case。**不能**让 HTML 标签或调试字段漏到卡片里(家人会看到)。
+ */
+/**
  * serializeHelpCard 测试。
  *
  * 重点:

@@ -1,4 +1,32 @@
 /**
+ * [OPENPRD 文件说明书]
+ * ## 核心功能
+ * HelpRequest 模板层。`buildHelpRequest(question)` 根据 question.risk.level
+ * 选 summary + suggestions,生成 HelpRequest。
+ *
+ * ## 输入
+ * - `question`: 必填,且 `question.risk.level !== 'low'`(否则抛错)
+ *
+ * ## 输出
+ * - `HelpRequest`: createHelpRequest(question, summary, suggestions) 产物
+ * - `SUGGESTIONS_BY_LEVEL`: 内部模板表(medium 3 条 / high 4 条 / critical 5 条)
+ *
+ * ## 定位
+ * 关注点分离:**类型/工厂在 help-request.ts,模板策略在 help-templates.ts**。
+ * M5 接 AI 改写 summary 时,只换这个文件,UI/工厂不动。
+ *
+ * ## 依赖
+ * - `../risk/types.ts` 的 `RiskLevel`
+ * - `../question/question.ts` 的 `QuestionRecord`
+ * - `./help-request.ts` 的 `createHelpRequest` / `HelpRequest`
+ *
+ * ## 维护规则
+ * - 按场景(scenario)细分建议的设计**当前不做**(参 help-templates.ts 顶部注释):
+ *   模板按等级兜底,scenario 信息通过 `question.risk.reason` 已经在 summary 里体现。
+ * - summary 兜底:`question.risk.reason` 为空时,降级为通用"遇到了需要您帮忙的事"。
+ * - 改模板要更新对应的 `help.test.ts`(现有 12 个 case 覆盖)。
+ */
+/**
  * HelpRequest 模板层 —— 根据 question.risk 生成对应的 summary + suggestions。
  *
  * 这一层独立于 help-request.ts(类型 + 工厂),目的是:

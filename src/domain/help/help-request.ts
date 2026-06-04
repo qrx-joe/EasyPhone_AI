@@ -1,4 +1,31 @@
 /**
+ * [OPENPRD 文件说明书]
+ * ## 核心功能
+ * HelpRequest 类型 + `createHelpRequest()` 工厂。当 question 被分类为
+ * high/critical 时,生成"可发给家人的求助卡"数据。
+ *
+ * ## 输入
+ * - `question`: 必填,且 `question.risk.level !== 'low'`(否则抛错)
+ * - `summary`: 1 句话总结(空抛错)
+ * - `suggestions`: 至少 1 条(空数组抛错)
+ *
+ * ## 输出
+ * - `HelpRequest`: 冻结的求助卡(id + question + riskLevel + summary + suggestions + createdAt)
+ *
+ * ## 定位
+ * 类型 + 工厂层。模板/序列化在 `help-templates.ts` 和 `card-serialization.ts`。
+ * 风险页 `/risk-alert` 直接消费这个类型的产物。
+ *
+ * ## 依赖
+ * - `../risk/types.ts` 的 `RiskLevel`
+ * - `../question/question.ts` 的 `QuestionRecord`
+ *
+ * ## 维护规则
+ * - 工厂对非法输入**抛错**(不返回 null)—— 低风险"误生成求助卡"是体验事故。
+ * - 字段全 readonly(防"卡片显示后又偷偷改"的安全漏洞)。
+ * - 数据最小化:不进卡片的(验证码/密码/身份证号)由 `card-serialization.ts` lint 守。
+ */
+/**
  * 家人求助卡 —— 当 question 被分类为 high/critical 时,生成一张可以
  * 一键发给家人的求助卡。
  *

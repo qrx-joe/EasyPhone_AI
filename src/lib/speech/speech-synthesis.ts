@@ -1,4 +1,28 @@
 /**
+ * [OPENPRD 文件说明书]
+ * ## 核心功能
+ * Web Speech Synthesis 的 typed 封装:能力检测、取消、speak() 念文本,带 cancel 闭包。
+ *
+ * ## 输入
+ * SpeakOptions{text, lang?, rate?, pitch?, volume?, onEnd?, onError?};
+ * 浏览器全局 window.speechSynthesis。
+ *
+ * ## 输出
+ * isSpeechSynthesisSupported()、cancelSpeech()、speak() 返回 cancel 函数;
+ * SpeakOptions 接口。
+ *
+ * ## 定位
+ * speech 库的 TTS 适配层;被 speak-button 调用。**全局单例**,新 speak 会打断旧的。
+ * 错误不抛(走 onError),保持 UI 主流程不被打断。
+ *
+ * ## 依赖
+ * 浏览器 SpeechSynthesis API(全局),无外部 npm 包。
+ *
+ * ## 维护规则
+ * 改默认 rate(适老化 0.85)要走 A/B 验证;新增参数要同步在 SpeakButton props 透传。
+ */
+
+/**
  * 浏览器 Web Speech Synthesis API 的 typed 封装。
  *
  * 与 web-speech.ts (recognition) 的差异:

@@ -1,4 +1,30 @@
 /**
+ * [OPENPRD 文件说明书]
+ * ## 核心功能
+ * buildRouteForInput + routeToInput 的安全不变量测试(4 风险等级/URL 参数/兜底/Router 集成)。
+ *
+ * ## 输入
+ * 文件内造的风险文本(各等级)+ fakeRouter({ push: () => void })(mock 注入)。
+ *
+ * ## 输出
+ * node --test 跑过的 pass/fail 计数(本文件 12 个 case,4 个 suite)。
+ *
+ * ## 定位
+ * routing domain 的**安全合同测试**。**不**测风险判断(那是 classify-risk.test.ts);
+ * 只测"高风险绝不进 /confirm"这条安全不变量。
+ *
+ * ## 依赖
+ * - `node:test` + `node:assert/strict`
+ * - `./user-routing.ts` (被测)
+ *
+ * ## 维护规则
+ * **改这个测试 = 改安全核心,必须 review**。12 个 case 锁住:
+ *   - high/critical 绝不进 /confirm
+ *   - 跳转永远带 text
+ *   - 空文本兜底 '/'
+ *   - 多关键词逗号拼接
+ */
+/**
  * buildRouteForInput 测试 —— 安全核心,所有 PR 必过。
  *
  * 重点:

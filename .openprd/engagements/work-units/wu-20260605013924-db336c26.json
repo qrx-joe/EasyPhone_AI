@@ -1,0 +1,18 @@
+{
+  "version": 1,
+  "workUnitId": "wu-20260605013924-db336c26",
+  "title": "EasyPhone_AI",
+  "status": "pending-confirmation",
+  "projectRoot": "D:\\code\\EasyPhone_AI",
+  "workspaceRoot": "D:\\code\\EasyPhone_AI\\.openprd",
+  "targetRoot": "D:\\code\\EasyPhone_AI",
+  "latestVersionId": "v0001",
+  "latestVersionDigest": "ba4ff36429192277c7936ed592a0c5844518f0a2c698a98fb97d5b76228779f3",
+  "reviewPath": "D:\\code\\EasyPhone_AI\\.openprd\\reviews\\v0001.html",
+  "activeReviewPath": null,
+  "reviewArtifact": "D:\\code\\EasyPhone_AI\\.openprd\\reviews\\v0001.html",
+  "activeReviewArtifact": null,
+  "artifactBundle": null,
+  "createdAt": "2026-06-05 01:39:24",
+  "updatedAt": "2026-06-05 01:39:24"
+}

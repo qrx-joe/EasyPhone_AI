@@ -1,4 +1,27 @@
 /**
+ * [OPENPRD 文件说明书]
+ * ## 核心功能
+ * classifyRiskByRules 的单测,锁住 M1 验收的 16 个 case + MAX/归一化/边界/契约。
+ *
+ * ## 输入
+ * 无(测试 fixture 在文件内定义)
+ *
+ * ## 输出
+ * 80+ 测试中 ~29 个 case 跑过 `node --test` 通过/失败
+ *
+ * ## 定位
+ * 风险分类器的"合同测试"。改 `classify-risk.ts` 必须跑这个文件全过。
+ *
+ * ## 依赖
+ * - `node:test` + `node:assert/strict` (Node 24+ 原生)
+ * - `./classify-risk.ts` (被测)
+ * - `./types.ts` (RiskLevel / shouldStopGuidance)
+ *
+ * ## 维护规则
+ * - 改 keywords / 改 MAX 行为 / 改 normalize 都要补测试。
+ * - 不在这里写新逻辑(测试只验证,不实现)。
+ */
+/**
  * 风险分类规则测试 — Milestone 1 验收。
  *
  * 数据源:docs/07-risk-keywords-library.md §10 的 16 个验收 case。

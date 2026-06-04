@@ -1,3 +1,26 @@
+/*
+ * [OPENPRD 文件说明书]
+ * ## 核心功能
+ * 适老化全局设计令牌与基础样式(html 基准字号、字体族、焦点环、颜色变量)。
+ *
+ * ## 输入
+ * 无 —— 全局样式源。
+ *
+ * ## 输出
+ * Tailwind 主题变量(--color-*、--font-sans);html/body/input/textarea/button
+ * 的基础样式与 :focus-visible 焦点环。
+ *
+ * ## 定位
+ * 全站设计令牌单一来源;不做组件级样式,只做底层与重置。
+ *
+ * ## 依赖
+ * tailwindcss(@import + @theme 指令)。
+ *
+ * ## 维护规则
+ * 改 html font-size / 颜色变量后,所有 page.tsx 跑一次肉眼校验 rem 是否还合适;
+ * 删任何变量前先 grep 用到的地方。
+ */
+
 @import "tailwindcss";
 
 /* ─────────────────────────────────────────────────────────────────

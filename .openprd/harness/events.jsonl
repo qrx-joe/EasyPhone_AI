@@ -1,0 +1,2 @@
+{"at":"2026-06-05 01:08:55","event":"agent-integration-installed","action":"init","tools":["codex","claude","cursor"],"hookProfile":"lite","managedFileCount":74}
+{"at":"2026-06-05 01:08:55","event":"workspace-registry-updated","registryPath":"C:\\Users\\14536\\.openprd\\registry\\workspaces.jsonl","status":"created","knownTotal":2}

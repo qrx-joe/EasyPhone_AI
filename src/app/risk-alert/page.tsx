@@ -1,4 +1,31 @@
 /**
+ * [OPENPRD 文件说明书]
+ * ## 核心功能
+ * 高风险分流后的「家人求助卡」页(server),重新分类 + 防 URL 篡改 + 打包求助卡。
+ *
+ * ## 输入
+ * URL searchParams.text(忽略其他 query)。
+ *
+ * ## 输出
+ * 渲染 <RiskAlertClient help={help}>;非高风险兜底 redirect 到 /tutorial 或 /;
+ * text 为空 redirect('/')。
+ *
+ * ## 定位
+ * 高风险路径的入口 server,负责可信分类 + 卡片构建;UI 在 client 组件里。
+ * 不信 URL 里的 level/keywords/reason,防手拼 URL 绕过。
+ *
+ * ## 依赖
+ * @/domain/risk/classify-risk(classifyRiskByRules)、
+ * @/domain/risk/types(shouldStopGuidance)、
+ * @/domain/question/question(createQuestion)、
+ * @/domain/help/help-templates(buildHelpRequest)、
+ * @/domain/help/help-request(HelpRequest 类型)、./risk-alert-client。
+ *
+ * ## 维护规则
+ * 改分类或卡片模板要同步跑 domain 单元测试;新增兜底 redirect 要在首页 user-routing 测试里加 case。
+ */
+
+/**
  * 风险提醒页 —— 家人求助卡的真实集成。
  *
  * 数据流(同 docs/06 M4 验收):

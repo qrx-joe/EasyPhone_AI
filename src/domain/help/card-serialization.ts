@@ -1,4 +1,42 @@
 /**
+ * [OPENPRD 文件说明书]
+ * ## 核心功能
+ * `serializeHelpCard(help)` 把 HelpRequest 序列化成纯文本(用于剪贴板复制)。
+ *
+ * ## 输入
+ * - `help`: 必填的 HelpRequest(由 `buildHelpRequest` 生成)
+ *
+ * ## 输出
+ * 字符串:
+ * ```
+ * 【爸妈别急 - 请您帮个忙】
+ *
+ * 我刚才遇到了需要警惕的事:
+ * <summary>
+ *
+ * 请帮我:
+ * 1. <suggestion 1>
+ * 2. <suggestion 2>
+ * ...
+ *
+ * 风险等级:<label>
+ * 时间:<createdAt>
+ * ```
+ *
+ * ## 定位
+ * 纯 view 层。同 help-templates.ts 一样可以替换(M5 让 AI 改写 summary 时,
+ * 这层跟着改)。不依赖 React / DOM —— 纯字符串拼接,可在任何环境跑。
+ *
+ * ## 依赖
+ * - `./help-request.ts` 的 `HelpRequest`
+ *
+ * ## 维护规则
+ * - **不**嵌 HTML/Markdown(家人用短信/微信直接转发,纯文本最稳)。
+ * - **不**含 matched keywords(那是给开发/调试看的,家人看到反而困惑)。
+ * - 顶部带「爸妈别急」产品签名(防"看起来像诈骗短信"误判)。
+ * - 改格式必过 `card-serialization.test.ts`(9 个 case 覆盖)。
+ */
+/**
  * 把 HelpRequest 序列化成「可以直接发微信/短信」的人话文本。
  *
  * 用途:家人求助卡点「复制」按钮后,落到剪贴板的内容。

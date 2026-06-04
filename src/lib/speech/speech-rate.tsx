@@ -1,6 +1,30 @@
 'use client'
 
 /**
+ * [OPENPRD 文件说明书]
+ * ## 核心功能
+ * 适老化 3 档语速控制:慢/较慢/正常,默认「较慢」(rate 0.85),localStorage 持久化。
+ *
+ * ## 输入
+ * 可选受控 value/onChange(父组件管理);不传则自管(useSpeechRate hook)。
+ *
+ * ## 输出
+ * useSpeechRate() → {tier, rate, setTier};<SpeechRateControl /> 3 档 radiogroup;
+ * SPEECH_RATE_OPTIONS(档位常量)、SpeechRateTier / SpeechRateOption 类型。
+ *
+ * ## 定位
+ * 跨页共用的语速档位组件库(tutorial / risk-alert 等都要用);
+ * 不暴露数字,只暴露文字档位。
+ *
+ * ## 依赖
+ * react(useState/useEffect/useCallback)、localStorage(key: easyphone.speech.rate)。
+ *
+ * ## 维护规则
+ * 改档位值要 e2e 跑 iOS Safari / 微信浏览器(SpeechSynthesis 行为差异);
+ * 改 storage key 要做一次数据迁移,否则老用户会重置。
+ */
+
+/**
  * 语速档位控制 —— 适老化 3 档(慢/较慢/正常)。
  *
  * 设计原则(同 docs/05 §5.1 适老化):

@@ -1,4 +1,30 @@
 /**
+ * [OPENPRD 文件说明书]
+ * ## 核心功能
+ * Web Speech Recognition 的 typed 封装 + 跨浏览器兼容 + 中文错误文案。
+ *
+ * ## 输入
+ * 浏览器 window 上的 SpeechRecognition / webkitSpeechRecognition 全局构造器;
+ * 可选 factory 注入(用于测试 mock)。
+ *
+ * ## 输出
+ * isSpeechRecognitionSupported()(能力检测)、defaultSpeechRecognitionFactory()(返回 handle)、
+ * explainSpeechError()(错误码 → 中文)、SpeechRecognitionHandle / Factory / ErrorCode 类型。
+ *
+ * ## 定位
+ * speech 库的底层适配层;被 use-speech-recognition 调用。
+ * 严格 typed、不录音不上传、永远假设可降级。
+ *
+ * ## 依赖
+ * 浏览器 Web Speech API(SpeechRecognition / webkitSpeechRecognition),
+ * 无运行时 npm 依赖。
+ *
+ * ## 维护规则
+ * 改默认 lang 同步 review docs/05 §2.1「语音识别必须有文本兜底」;
+ * 改 explain 文案要由 UX 走查(适老化:不甩锅、给下一步动作)。
+ */
+
+/**
  * 浏览器 Web Speech API 的 typed 封装。
  *
  * 跨浏览器兼容:

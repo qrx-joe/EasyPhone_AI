@@ -1,6 +1,31 @@
 'use client'
 
 /**
+ * [OPENPRD 文件说明书]
+ * ## 核心功能
+ * 教程分步交互 client 组件:维护步进索引 + 展示当前步骤 + 「念给我听」/前进/没看到/点错了。
+ *
+ * ## 输入
+ * props.text(原始问题)、props.tutorial(从 server 传入的 Tutorial)。
+ *
+ * ## 输出
+ * 步进 UI + SpeakButton 触发语音播报;本地 state:currentStepIndex、
+ * showAlternative、showResetWarning、speechRate(从 useSpeechRate 来)。
+ *
+ * ## 定位
+ * 教程页的 UI 与状态机;不做风险判断(已在 server / 首页分流过),
+ * 不存操作历史(留给 P1+)。
+ *
+ * ## 依赖
+ * react(useState)、next/link、@/domain/tutorial/tutorial(Tutorial 类型)、
+ * @/lib/speech/speak-button、@/lib/speech/speech-rate(useSpeechRate)。
+ *
+ * ## 维护规则
+ * 改 step.alternative / step.instruction 显示规则要 e2e 跑通 M3 验收;
+ * CompletedView 改动要保持「不直接跳走、给回首页出口」。
+ */
+
+/**
  * 教程分步交互 —— 客户端组件。
  *
  * 状态机(M3 验收):

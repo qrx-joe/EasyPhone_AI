@@ -1,4 +1,26 @@
 /**
+ * [OPENPRD 文件说明书]
+ * ## 核心功能
+ * 低风险路径的「问对了吗」确认页(server component),渲染用户问题供二次确认。
+ *
+ * ## 输入
+ * URL searchParams.text —— 由首页 routeToInput 跳转时附带。
+ *
+ * ## 输出
+ * 静态页面 + 内嵌 <ConfirmActions>;text 为空时 redirect('/')。
+ *
+ * ## 定位
+ * 中间路由 —— 只服务低/中风险分流,不接高风险(高风险已在首页走 /risk-alert)。
+ * 服务端做空 text 兜底,客户端只装交互按钮。
+ *
+ * ## 依赖
+ * next/navigation(redirect)、./confirm-actions(交互按钮 client 组件)。
+ *
+ * ## 维护规则
+ * 改跳转路径要同步更新 docs/06 流程图;新增参数同步 update tutorial/page.tsx。
+ */
+
+/**
  * 确认页 — 低风险路径的「问对了吗」步骤。
  *
  * 输入路径:首页 classifyRiskByRules 判定 low/medium 后跳到这里。

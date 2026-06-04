@@ -1,4 +1,37 @@
 /**
+ * [OPENPRD 文件说明书]
+ * ## 核心功能
+ * 用户输入 → 页面路由,**唯一**做"高风险不走 /confirm"分流的地方。
+ *
+ * ## 输入
+ * - `text`: 用户原始输入(空 → redirect '/')
+ * - `router`: Next.js `useRouter()` 返回的 router(只要 `push` 方法,接口极简)
+ *
+ * ## 输出
+ * - `buildRouteForInput(text)`: { href, level } 纯函数,不依赖 Router
+ * - `routeToInput(router, text)`: 实际执行 router.push(href)
+ *
+ * ## 定位
+ * **安全核心**。多个入口(首页文本/语音/demo 直链)共用同一份分流。
+ * 抽这个函数的目的(同 docs/05 §8 反"僵化/冗余"):
+ *   - 多个入口共享同一份逻辑,改规则只动 1 处
+ *   - 纯函数,12 个测试覆盖
+ *   - URL 参数(level/keywords/reason)拼接只在一处
+ *
+ * ## 依赖
+ * - `../risk/classify-risk.ts` 的 `classifyRiskByRules`
+ * - `../risk/types.ts` 的 `shouldStopGuidance`
+ *
+ * ## 维护规则
+ * - **不变量**(12 个测试锁住):
+ *   1. high/critical 绝不进 /confirm
+ *   2. 跳转永远带 text
+ *   3. 空文本兜底 '/'
+ *   4. 多关键词逗号拼接
+ * - 改这个函数必过 `user-routing.test.ts` 全部 12 个 case。
+ * - 不在这里加 React state / DOM 操作 —— 纯函数,导入要保持纯净。
+ */
+/**
  * 用户输入 → 页面路由 —— 单一安全核心入口。
  *
  * 抽这个函数的目的(同 docs/05 §8 反「僵化/冗余」):

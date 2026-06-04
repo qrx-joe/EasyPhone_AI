@@ -1,0 +1,88 @@
+{
+  "versionNumber": 1,
+  "versionId": "v0001",
+  "createdAt": "2026-06-05 01:39:24",
+  "projectRoot": "D:\\code\\EasyPhone_AI",
+  "workspaceRoot": "D:\\code\\EasyPhone_AI\\.openprd",
+  "schema": "prd-core",
+  "templatePack": "base",
+  "productType": null,
+  "title": "EasyPhone_AI",
+  "owner": "待补充",
+  "status": "synthesized",
+  "sections": {
+    "meta": {
+      "title": "EasyPhone_AI",
+      "owner": "待补充",
+      "status": "initialized",
+      "version": "v0001",
+      "productType": "未分类",
+      "date": "2026-06-05"
+    },
+    "problem": {
+      "problemStatement": null,
+      "whyNow": null,
+      "evidence": []
+    },
+    "users": {
+      "primaryUsers": [],
+      "secondaryUsers": [],
+      "stakeholders": []
+    },
+    "goals": {
+      "goals": [],
+      "successMetrics": [],
+      "acceptanceGoals": []
+    },
+    "scope": {
+      "inScope": [],
+      "outOfScope": []
+    },
+    "scenarios": {
+      "primaryFlows": [],
+      "edgeCases": [],
+      "failureModes": []
+    },
+    "requirements": {
+      "functional": [],
+      "nonFunctional": [],
+      "businessRules": []
+    },
+    "businessGuardrails": {
+      "costDrivers": [],
+      "usageLimits": [],
+      "abusePrevention": [],
+      "monitoringSignals": [],
+      "alertThresholds": [],
+      "stopLossActions": []
+    },
+    "constraints": {
+      "technical": [],
+      "compliance": [],
+      "dependencies": []
+    },
+    "risks": {
+      "assumptions": [],
+      "risks": [],
+      "openQuestions": []
+    },
+    "handoff": {
+      "owner": "待补充",
+      "nextStep": "评审已生成的 PRD，并准备交接。",
+      "targetSystem": "OpenSpec"
+    },
+    "typeSpecific": {
+      "kind": "base",
+      "title": "类型专项",
+      "fields": {
+        "note": "请选择产品类型，以启用对应的专项 PRD 模块。"
+      }
+    }
+  },
+  "reviewPresentation": null,
+  "reviewPresentationMeta": null,
+  "workUnitId": "wu-20260605013924-db336c26",
+  "targetRoot": "D:\\code\\EasyPhone_AI",
+  "content": "# EasyPhone_AI\n> 语言规则：除 PRD、OpenPrd、OpenSpec、API、SDK、CLI、TypeScript、JSON、HTTP、WebSocket、字段 key、命令名、产品名和协议名等必要专有名词外，用户可见内容应使用简体中文。\n- 版本: v0001\n- 负责人: 待补充\n- 产品类型: 未分类\n- 模板包: base\n- 状态: synthesized\n- 生成时间: 2026-06-05 01:39:24\n## 元信息\n\n- 标题: EasyPhone_AI\n- 负责人: 待补充\n- 状态: initialized\n- 版本: v0001\n- 产品类型: 未分类\n- 日期: 2026-06-05\n\n## 问题\n\n- 问题陈述: 待补充\n- 为什么是现在: 待补充\n- 证据:\n  - 待补充\n\n## 用户与相关方\n\n- 主要用户:\n  - 待补充\n- 次要用户:\n  - 待补充\n- 相关方:\n  - 待补充\n\n## 目标与成功标准\n\n- 目标:\n  - 待补充\n- 成功指标:\n  - 待补充\n- 验收目标:\n  - 待补充\n\n## 范围与非目标\n\n- 范围内:\n  - 待补充\n- 范围外:\n  - 待补充\n\n## 场景与流程\n\n- 主流程:\n  - 待补充\n- 边界情况:\n  - 待补充\n- 失败模式:\n  - 待补充\n\n## 可视化图表\n\n### 产品流程\n\n```mermaid\nflowchart LR\n  entry[\"入口触发<br/>主流程仍需确认\"]\n  experience[\"产品内步骤<br/>核心产品步骤\"]\n  decision{\"决策点<br/>边界情况仍需澄清\"}\n  success([\"成功结果<br/>成功指标仍需确认\"])\n  failure[[\"失败与恢复<br/>失败路径仍需澄清\"]]\n  entry -->|\"主流程仍需确认\"| experience\n  experience -->|\"系统处理请求\"| decision\n  decision -->|\"目标仍需确认\"| success\n  decision -.->|\"失败路径仍需澄清\"| failure\n```\n\n### 架构\n\n```mermaid\nflowchart LR\n  users[\"主要用户<br/>用户\"]\n  subgraph solution[\"方案边界\"]\n    experience[\"产品体验层<br/>EasyPhone_AI\"]\n    core[\"核心产品逻辑<br/>核心逻辑待澄清\"]\n    integrations[\"依赖与集成<br/>暂无外部依赖记录\"]\n    governance[[\"约束与可靠性<br/>暂无明确约束\"]]\n    delivery[\"验证与交接<br/>成功指标待确认\"]\n  end\n  users -->|\"主流程仍需确认\"| experience\n  experience -->|\"产品动作与编排\"| core\n  core -->|\"依赖与外部服务\"| integrations\n  core -.->|\"策略、可靠性与合规\"| governance\n  core -->|\"成功标准与交接\"| delivery\n  integrations -->|\"运营就绪\"| delivery\n  governance -.->|\"评审与确认\"| delivery\n```\n\n## 需求\n\n- 功能需求:\n  - 待补充\n- 非功能需求:\n  - 待补充\n- 业务规则:\n  - 待补充\n\n## 业务护栏\n\n- 成本来源:\n  - 待补充\n- 额度与限制:\n  - 待补充\n- 滥用防护:\n  - 待补充\n- 监控信号:\n  - 待补充\n- 报警阈值:\n  - 待补充\n- 止损动作:\n  - 待补充\n\n## 约束、依赖与风险\n\n- 技术约束:\n  - 待补充\n- 合规要求:\n  - 待补充\n- 依赖:\n  - 待补充\n- 假设:\n  - 待补充\n- 风险:\n  - 待补充\n- 开放问题:\n  - 待补充\n\n## 类型专项模块\n\n- 类型: 类型专项\n- note: 请选择产品类型，以启用对应的专项 PRD 模块。\n\n## 交接\n\n- 负责人: 待补充\n- 下一步: 评审已生成的 PRD，并准备交接。\n- 目标系统: OpenSpec\n",
+  "digest": "ba4ff36429192277c7936ed592a0c5844518f0a2c698a98fb97d5b76228779f3"
+}

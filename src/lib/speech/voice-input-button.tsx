@@ -1,6 +1,31 @@
 'use client'
 
 /**
+ * [OPENPRD 文件说明书]
+ * ## 核心功能
+ * 首页「按住说话」按钮 UI:点一下开始听,识别到 final 后自动跳走,出错时给中文兜底。
+ *
+ * ## 输入
+ * 无 props;内部调 useSpeechRecognition,onFinal 走 routeToInput 路由。
+ *
+ * ## 输出
+ * 点击切换 start/stop 事件;路由跳转(/confirm 或 /risk-alert);
+ * 实时 transcript 反馈 + 错误提示(均本地 state)。
+ *
+ * ## 定位
+ * 首页的主语音入口;**不**做风险判断,跟文本输入共用 routeToInput。
+ * 不支持时父级要保证文本输入仍可用。
+ *
+ * ## 依赖
+ * next/navigation(useRouter)、@/domain/routing/user-routing(routeToInput)、
+ * ./use-speech-recognition.ts。
+ *
+ * ## 维护规则
+ * 改按钮文案/颜色同步 review 适老化词表;
+ * 改 onFinal 行为(比如改成不自动跳)要在首页 UX 走查。
+ */
+
+/**
  * 首页「按住说话」按钮 —— 真实集成 Web Speech Recognition。
  *
  * 行为:

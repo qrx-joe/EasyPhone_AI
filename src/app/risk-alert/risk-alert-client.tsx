@@ -1,6 +1,31 @@
 'use client'
 
 /**
+ * [OPENPRD 文件说明书]
+ * ## 核心功能
+ * 风险提醒页的 client 组件,渲染求助卡 UI、复制到剪贴板、模拟发送与返回首页。
+ *
+ * ## 输入
+ * props.help(HelpRequest,来自父 server 组件的预打包数据)。
+ *
+ * ## 输出
+ * 三个按钮 click 事件(复制/模拟发送/返回)、剪贴板写入、alert 弹窗;
+ * 本地状态 copyState(idle/success/error)。
+ *
+ * ## 定位
+ * 风险页的 UI 层,只做展示与交互;**不**做风险判断、**不**拼卡片文本。
+ * 复制失败时降级为「长按文本框选中」提示,避免主流程崩溃。
+ *
+ * ## 依赖
+ * react(useState)、next/link、@/domain/help/help-request(HelpRequest)、
+ * @/domain/help/card-serialization(serializeHelpCard)、浏览器 Clipboard API。
+ *
+ * ## 维护规则
+ * 改按钮文案同步 review 适老化词表;改复制逻辑要做 e2e 验 Safari/微信浏览器
+ * (clipboard 在 insecure context 会失败)。
+ */
+
+/**
  * 风险提醒页 —— 客户端组件。
  *
  * 展示内容:

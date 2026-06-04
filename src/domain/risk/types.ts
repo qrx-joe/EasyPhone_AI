@@ -1,4 +1,32 @@
 /**
+ * [OPENPRD 文件说明书]
+ * ## 核心功能
+ * 风险等级枚举 + 等级数值映射 + "是否该停教程"判定函数。安全不变量源头之一。
+ *
+ * ## 输入
+ * 上游无;导出供 `classify-risk.ts` 写,供 `routing/user-routing.ts` 读。
+ *
+ * ## 输出
+ * - `RiskLevel`: 'low' | 'medium' | 'high' | 'critical'
+ * - `RISK_RANK`: 等级 → 数值映射(用于取 MAX)
+ * - `shouldStopGuidance(level)`: 等级 ≥ high 返回 true(高风险永不进教程)
+ * - `RiskClassification`: 分类结果(给 help / routing 共享)
+ *
+ * ## 定位
+ * 整个 risk domain 的"协议层"。所有"什么算高/中/低"的判断都从这张表里出。
+ * **不允许**在任何 UI 组件里写死 `level === 'high' || level === 'critical'`,
+ * 一律走 shouldStopGuidance()(规避冗余坏味道)。
+ *
+ * ## 依赖
+ * 无运行时依赖(纯类型 + 纯函数)。
+ *
+ * ## 维护规则
+ * - 加新风险等级需要:更新 `RiskLevel` 联合类型、`RISK_RANK` 映射、
+ *   `shouldStopGuidance` 边界、补单测。
+ * - 改 `shouldStopGuidance` 阈值必过 `classify-risk.test.ts` + `user-routing.test.ts`。
+ * - 不要在这里导入任何 React / Next.js / I/O 相关模块。
+ */
+/**
  * 风险等级。
  *
  * - critical: 不可逆损失,一步到位的诈骗。

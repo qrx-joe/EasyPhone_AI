@@ -1,0 +1,20 @@
+{
+  "version": 1,
+  "updatedAt": "2026-06-05 01:38:03",
+  "reports": [
+    {
+      "reportId": "eval-20260605013803",
+      "jsonPath": "D:\\code\\EasyPhone_AI\\.openprd\\quality\\reports\\eval-20260605013803.json",
+      "htmlPath": "D:\\code\\EasyPhone_AI\\.openprd\\quality\\reports\\eval-20260605013803.html",
+      "generatedAt": "2026-06-05 01:38:03",
+      "status": "needs-attention"
+    },
+    {
+      "reportId": "eval-20260605013758",
+      "jsonPath": "D:\\code\\EasyPhone_AI\\.openprd\\quality\\reports\\eval-20260605013758.json",
+      "htmlPath": "D:\\code\\EasyPhone_AI\\.openprd\\quality\\reports\\eval-20260605013758.html",
+      "generatedAt": "2026-06-05 01:37:58",
+      "status": "needs-attention"
+    }
+  ]
+}

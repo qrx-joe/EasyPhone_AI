@@ -1,4 +1,27 @@
 /**
+ * [OPENPRD 文件说明书]
+ * ## 核心功能
+ * createQuestion 工厂的合同测试(正常/trim/空/重复/冻结)。
+ *
+ * ## 输入
+ * 文件内手写的小测试用例(text + source + risk 三元组);无外部 fixture。
+ *
+ * ## 输出
+ * node --test 跑过的 pass/fail 计数(本文件 6 个 case)。
+ *
+ * ## 定位
+ * question domain 的合同测试。**不**测 risk 分类(那是 classify-risk.test.ts);
+ * 只测工厂边界 + 不可变性。
+ *
+ * ## 依赖
+ * - `node:test` + `node:assert/strict`
+ * - `./question.ts` (被测)
+ * - `../risk/classify-risk.ts`(构造 risk 用的辅助)
+ *
+ * ## 维护规则
+ * 改 `createQuestion` 必过这 6 个 case。
+ */
+/**
  * QuestionRecord 工厂测试。
  */
 

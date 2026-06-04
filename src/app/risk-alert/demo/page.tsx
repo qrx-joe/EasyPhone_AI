@@ -1,4 +1,27 @@
 /**
+ * [OPENPRD 文件说明书]
+ * ## 核心功能
+ * 高风险场景的 Demo 直链路由,给投资人/家人/队友 1 秒演示「系统怎么拦下来」。
+ *
+ * ## 输入
+ * URL searchParams.case —— 白名单 key(medical-sms / public-security /
+ * screen-share / apple-id / fake-benefit)。
+ *
+ * ## 输出
+ * 1 次 server redirect(到 /risk-alert 或兜底到 /);不在该页渲染任何 UI。
+ *
+ * ## 定位
+ * 演示专用路由,白名单 case + 走 buildRouteForInput 统一入口;
+ * 不接任意 text(防随手拼敏感词)。
+ *
+ * ## 依赖
+ * next/navigation(redirect)、@/domain/routing/user-routing(buildRouteForInput)。
+ *
+ * ## 维护规则
+ * 增删 demo case 同步更新本文件 RISK_DEMO_CASES 与文档 docs/06 §6 M6 验收清单。
+ */
+
+/**
  * /risk-alert/demo —— 高风险场景的 Demo 直链路由。
  *
  * 目的:

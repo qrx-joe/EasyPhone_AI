@@ -1,4 +1,30 @@
 /**
+ * [OPENPRD 文件说明书]
+ * ## 核心功能
+ * 规则版风险分类器(无 AI)。`classifyRiskByRules(text)` 返回 `RiskClassification`。
+ *
+ * ## 输入
+ * - `text`: 老人原始输入(字符串)。空字符串/纯空白 → 直接返回 low。
+ *
+ * ## 输出
+ * - `RiskClassification`: { level, matchedKeywords[], reason }
+ * - 命中多个关键词时,level = MAX(命中关键词的 level),**永远取最高** —— 这是安全保险丝。
+ *
+ * ## 定位
+ * 整个产品的"安全核心"。所有路由(首页、demo 直链、风险页)都依赖这个函数。
+ * 改匹配算法/降级逻辑/MAX 行为 = 改安全不变量,**必须 review + 加测试**。
+ *
+ * ## 依赖
+ * - `./risk-keywords.ts`: RISK_KEYWORDS 数据
+ * - `./types.ts`: RiskLevel / RISK_RANK / RiskClassification
+ *
+ * ## 维护规则
+ * - 改 normalize 逻辑(全角/小写/trim)要补归一化测试(已在 test 覆盖)。
+ * - 改 MAX 行为 = 拆安全保险丝,**绝对不允许**。
+ * - 不在这里加正则(同 docs/08 §1.3 决策)。
+ * - M5 接 AI 时,这里是规则兜底层,AI 是上层增强。
+ */
+/**
  * 基于关键词规则的风险分类。
  *
  * 设计原则(来自 docs/05-project-standards.md §3 + docs/08 决策):

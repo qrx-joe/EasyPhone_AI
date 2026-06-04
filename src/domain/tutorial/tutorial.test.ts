@@ -1,4 +1,26 @@
 /**
+ * [OPENPRD 文件说明书]
+ * ## 核心功能
+ * TUTORIALS 库结构 + findTutorial 匹配(同义词/大小写/空白/不相关) + safeTutorialsFor 防御。
+ *
+ * ## 输入
+ * 文件内 SPEC_CASES 数组 + ad-hoc 输入(同义说法 / 不相关 / 空 / 大小写)。
+ *
+ * ## 输出
+ * node --test 跑过的 pass/fail 计数(本文件 ~15 个 case,4 个 suite)。
+ *
+ * ## 定位
+ * tutorial domain 的合同测试。**不**测教程内容(那是教程库本身维护的事),
+ * 只测匹配算法 + 库结构 + 防御性过滤。
+ *
+ * ## 依赖
+ * - `node:test` + `node:assert/strict`
+ * - `./tutorial.ts` (被测)
+ *
+ * ## 维护规则
+ * 扩教程 / 改匹配算法 必过这 ~15 个 case。
+ */
+/**
  * 教程匹配 + 库覆盖测试。
  *
  * 重点:
