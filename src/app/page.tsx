@@ -24,6 +24,7 @@ import { useState } from 'react'
 
 import { classifyRiskByRules } from '@/domain/risk/classify-risk'
 import { shouldStopGuidance } from '@/domain/risk/types'
+import { VoiceInputButton } from '@/lib/speech/voice-input-button'
 
 const DEMO_CASES = [
   { emoji: '📱', label: '微信没有声音了',     text: '微信没有声音了' },
@@ -55,9 +56,9 @@ export default function HomePage() {
   }
 
   function handleVoiceClick() {
-    // M2 占位:WebSpeech API 接入推到后续 milestone。
-    // 不静默,明确告诉老人「这里以后会能说话」,避免反复点击的疑惑。
-    alert('语音输入功能马上就要上线,先用「打字告诉我」试一下吧。')
+    // 占位保留,真实语音逻辑迁到 <VoiceInputButton> 组件里。
+    // 这个函数现在不会被调用(按钮 onClick 改成 <VoiceInputButton> 的 start),
+    // 但保留签名稳定未来切换回 in-page 实现时不用改测试。
   }
 
   return (
@@ -74,15 +75,7 @@ export default function HomePage() {
 
       {/* 主操作区:两个并列大按钮 */}
       <section className="w-full flex flex-col gap-4 mb-10">
-        <button
-          type="button"
-          onClick={handleVoiceClick}
-          className="w-full min-h-[80px] px-6 py-4 rounded-2xl bg-[--color-primary] hover:bg-[--color-primary-hover] active:scale-[0.98] transition text-white text-2xl font-semibold flex items-center justify-center gap-3 shadow-sm"
-          aria-label="按住说话提问"
-        >
-          <span aria-hidden className="text-3xl">🎙</span>
-          按住说话
-        </button>
+        <VoiceInputButton />
 
         <button
           type="button"
