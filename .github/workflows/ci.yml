@@ -47,3 +47,18 @@ jobs:
       # build 失败也是 merge 阻断
       - name: Production build
         run: pnpm build
+
+      # OpenPrd 门禁(对应 AGENTS.md "High-Risk Gate"):
+      # Before commit / push, ensure standards / quality / doctor are healthy.
+      # 任何 PR 改坏文件说明书 / 文件夹 README / docs/basic/ 都会被卡住。
+      - name: OpenPrd standards verify
+        run: npx --yes @openprd/cli@latest standards . --verify
+
+      - name: OpenPrd quality verify
+        run: npx --yes @openprd/cli@latest quality . --verify
+        continue-on-error: true
+        # 业务级护栏(成本/冒烟)在 MVP 阶段没证据是合理的
+        # 等 M5+ 有 LLM API 成本数据 + 端到端冒烟测试后再改成必过
+
+      - name: OpenPrd doctor
+        run: npx --yes @openprd/cli@latest doctor .
