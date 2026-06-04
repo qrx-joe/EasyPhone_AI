@@ -118,6 +118,33 @@ PR 改这些代码时务必保留：
 - [ ] M5 AI 接入（P2，需要 API key）
 - [ ] M6 Demo 打磨 + 部署
 
+## OpenPrd 状态
+
+项目用 [OpenPrd](https://github.com/mileson/openprd) 管理工作区。CI 卡 3 个门禁必过 + 1 个门禁 `continue-on-error`。
+
+| 门禁 | 状态 | 说明 |
+|---|---|---|
+| `standards --verify` | ✅ 通过 | 34/34 文件说明书 + 13/13 文件夹 README + 6/6 docs/basic/ baseline |
+| `smoke`（quality 子门禁） | ✅ 通过 | `scripts/smoke.mjs` 测 5 个关键路由, CI 必跑 |
+| `feature-coverage`（quality 子门禁） | ✅ 通过 | 80+ 单元测试 + 1 个 M5 work unit |
+| `business-guardrails`（quality 子门禁） | ⚠️ needs-attention | MVP 阶段未接 LLM, 没运行时成本/滥用数据. 见 [.openprd/quality/evidence/business-guardrails.md](.openprd/quality/evidence/business-guardrails.md) |
+| `doctor` | ✅ 通过 | OpenPrd 自身环境检查 |
+
+**未完成部分**（需交互式终端完成）：
+
+OpenPrd 8 阶段流程(`clarify → capture → classify → interview → synthesize → diagram → review → freeze → handoff`)的后半段是**人工 review 设计**, 不适合 AI agent 自动跑:
+
+```bash
+# 在交互式终端里跑(替代 AI agent 上下文):
+openprd review-presentation . --template          # 生成 review presentation 模板
+# 填 presentation JSON 后:
+openprd review-presentation . --presentation <filled.json> --write --fail-on-violation
+openprd review . --mark confirmed
+openprd freeze .                                   # 冻结 v0001
+```
+
+CI 当前 `continue-on-error` 在 quality verify 上(MVP 阶段 1 个必过门禁没运行时数据,合理).
+
 ## 相关文档
 
 - [docs/00-prd-cn-authoritative.md](docs/00-prd-cn-authoritative.md) — 权威 PRD

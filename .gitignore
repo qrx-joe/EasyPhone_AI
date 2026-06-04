@@ -39,3 +39,14 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# OpenPrd dynamic outputs (re-generated on every verify; keep config + specs + evidence)
+.openprd/quality/reports/
+.openprd/state/events.jsonl
+.openprd/harness/drift-report.json
+.openprd/harness/run-state.json
+.openprd/engagements/
+
+# OpenPrd multi-agent adapters (we don't use Codex/Cursor, keep the dirs only locally)
+.codex/
+.cursor/
