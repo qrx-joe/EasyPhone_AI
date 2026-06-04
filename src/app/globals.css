@@ -1,26 +1,74 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/* ─────────────────────────────────────────────────────────────────
+ * 适老化设计令牌(docs/05 §5.1 + C 决策 2026-06-04)。
+ *
+ * 设计原则:
+ *   1. 基准字号 22px(html font-size)。Tailwind 用 rem 计量,
+ *      所以 text-base = 22px、text-xl = 27.5px、text-3xl = 41.25px,
+ *      不用每个组件再加 text-lg/text-xl 那种适老化补丁。
+ *   2. 单一 light theme,删除 prefers-color-scheme 响应 — C 决策。
+ *      老人白天用得多,深色模式下浅黑配深底对老花眼对比更差。
+ *   3. 字体族中文优先,避免请求外部 Geist。
+ *   4. 触控优化:关闭 iOS 双击放大、去 tap highlight。
+ * ───────────────────────────────────────────────────────────────── */
+
+@theme {
+  --color-background: #ffffff;
+  --color-foreground: #1a1a1a;
+
+  /* 主动作色(蓝)— 用于「按住说话」「打字告诉我」「是的,继续」 */
+  --color-primary: #2563eb;
+  --color-primary-hover: #1d4ed8;
+  --color-primary-soft: #dbeafe;
+
+  /* 危险色(红)— 用于「停下来」「家人求助卡」「不要操作」 */
+  --color-danger: #dc2626;
+  --color-danger-hover: #b91c1c;
+  --color-danger-soft: #fee2e2;
+
+  /* 中性灰阶 */
+  --color-muted: #6b7280;
+  --color-soft: #f3f4f6;
+  --color-soft-hover: #e5e7eb;
+  --color-border: #d1d5db;
+
+  /* 中文优先字体族 */
+  --font-sans:
+    "PingFang SC", "Microsoft YaHei", "Source Han Sans CN", "WenQuanYi Micro Hei",
+    system-ui, -apple-system, "Segoe UI", sans-serif;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  /* 适老化基准:22px。所有 rem 都按这个缩放 */
+  font-size: 22px;
+  /* 强制 light(不响应系统深色) */
+  color-scheme: light only;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--color-background);
+  color: var(--color-foreground);
+  font-family: var(--font-sans);
+  line-height: 1.6;
+  /* 手机优化 */
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
+
+/* 让 input/textarea 继承字体(避免老人输入区字突然变小) */
+input,
+textarea,
+button {
+  font-family: inherit;
+  font-size: inherit;
+}
+
+/* 老人 focus 必须可见(键盘/外设场景) */
+:focus-visible {
+  outline: 3px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
