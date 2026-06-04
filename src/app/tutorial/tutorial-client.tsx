@@ -23,6 +23,7 @@ import Link from 'next/link'
 import { useState } from 'react'
 
 import type { Tutorial } from '@/domain/tutorial/tutorial'
+import { SpeakButton } from '@/lib/speech/speak-button'
 
 interface Props {
   text: string
@@ -94,6 +95,13 @@ export function TutorialClient({ text, tutorial }: Props) {
             (换一种说法,看哪种您更明白)
           </p>
         )}
+
+        {/* 「念给我听」按钮 — 紧贴步骤内容,视觉上明显属于"念这一步" */}
+        <div className="mt-5">
+          <SpeakButton
+            text={showAlternative && step.alternative ? step.alternative : step.instruction}
+          />
+        </div>
       </section>
 
       {/* 「点错了」警告(临时显示,点「我知道了」关闭) */}
