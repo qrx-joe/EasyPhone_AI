@@ -48,6 +48,20 @@ jobs:
       - name: Production build
         run: pnpm build
 
+      # Smoke test —— 启动生产 server,验证 5 个关键路由
+      # (首页 + 2 个低风险 demo + 2 个高风险 demo) HTTP 200 + 关键文本
+      # 任何路由 500/404 都会卡 merge
+      # 对应 OpenPrd quality 门禁 `smoke`(必需,缺证据)
+      - name: Start production server
+        run: pnpm start
+        background: true
+
+      - name: Wait for server ready
+        run: sleep 5
+
+      - name: Smoke test
+        run: node scripts/smoke.mjs
+
       # OpenPrd 门禁(对应 AGENTS.md "High-Risk Gate"):
       # Before commit / push, ensure standards / quality / doctor are healthy.
       # 任何 PR 改坏文件说明书 / 文件夹 README / docs/basic/ 都会被卡住。
