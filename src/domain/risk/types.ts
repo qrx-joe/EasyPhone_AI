@@ -59,5 +59,3 @@ export interface RiskClassification {
   matchedKeywords: string[]
   reason: string
 }
-</content>
-</invoke>
