@@ -17,8 +17,7 @@
 
 import { useRouter } from 'next/navigation'
 
-import { classifyRiskByRules } from '@/domain/risk/classify-risk'
-import { shouldStopGuidance } from '@/domain/risk/types'
+import { routeToInput } from '@/domain/routing/user-routing'
 
 import { useSpeechRecognition } from './use-speech-recognition.ts'
 
@@ -27,17 +26,9 @@ export function VoiceInputButton() {
   const { state, transcript, errorMessage, isSupported, start, stop } =
     useSpeechRecognition({
       onFinal: (text) => {
-        // 走跟 goConfirm 一样的分流逻辑 —— 复用安全核心
-        const r = classifyRiskByRules(text)
-        const qs = new URLSearchParams({ text })
-        if (shouldStopGuidance(r.level)) {
-          qs.set('level', r.level)
-          qs.set('keywords', r.matchedKeywords.join(','))
-          qs.set('reason', r.reason)
-          router.push(`/risk-alert?${qs.toString()}`)
-        } else {
-          router.push(`/confirm?${qs.toString()}`)
-        }
+        // 走统一路由函数 —— 跟 <HomePage> 的 goConfirm 是同一份代码
+        // 安全核心:高风险绝不走 /confirm
+        routeToInput(router, text)
       },
     })
 

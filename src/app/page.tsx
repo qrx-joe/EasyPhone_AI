@@ -12,18 +12,17 @@
  *   - 所有按钮 min-h ≥ 56px(html font-size 22px 下,Tailwind min-h-14 = 56px)
  *   - 主按钮 56~64px,字号 text-xl(27.5px)
  *   - 单屏一动作:点击「打字告诉我」后才出现 textarea,避免一开始就一堆控件
- *   - 语音功能:M2 阶段先做 UI + alert 占位,实际 WebSpeech 接入推到后续
  *
  * 路由约定:
- *   - 用户输入提交 → /confirm?text=...
- *   - 风险分流在 /confirm 页内完成,首页不直接判断
+ *   - 用户输入 → routeToInput() (在 src/domain/routing/user-routing.ts)
+ *     这是**唯一**做"高风险不走 confirm 教程"分流的地方
+ *     之前这里写过一版,跟 <VoiceInputButton> 里重复 —— 已抽出去
  */
 
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 
-import { classifyRiskByRules } from '@/domain/risk/classify-risk'
-import { shouldStopGuidance } from '@/domain/risk/types'
+import { routeToInput } from '@/domain/routing/user-routing'
 import { VoiceInputButton } from '@/lib/speech/voice-input-button'
 
 const DEMO_CASES = [
@@ -37,28 +36,9 @@ export default function HomePage() {
   const [mode, setMode] = useState<'idle' | 'text'>('idle')
   const [textInput, setTextInput] = useState('')
 
-  function goConfirm(text: string) {
-    const trimmed = text.trim()
-    if (!trimmed) return
-    // 安全核心:在路由之前先跑规则分类。
-    // 高风险输入(critical/high)永不进入「你是不是想解决 XXX」的教程化引导,
-    // 直接跳到风险提醒页,避免给老人一种「这事我们能教你做」的暗示。
-    const r = classifyRiskByRules(trimmed)
-    const qs = new URLSearchParams({ text: trimmed })
-    if (shouldStopGuidance(r.level)) {
-      qs.set('level', r.level)
-      qs.set('keywords', r.matchedKeywords.join(','))
-      qs.set('reason', r.reason)
-      router.push(`/risk-alert?${qs.toString()}`)
-    } else {
-      router.push(`/confirm?${qs.toString()}`)
-    }
-  }
-
-  function handleVoiceClick() {
-    // 占位保留,真实语音逻辑迁到 <VoiceInputButton> 组件里。
-    // 这个函数现在不会被调用(按钮 onClick 改成 <VoiceInputButton> 的 start),
-    // 但保留签名稳定未来切换回 in-page 实现时不用改测试。
+  // 走统一路由函数(安全核心:高风险绝不走 /confirm)
+  function goConfirm(text: string): void {
+    routeToInput(router, text)
   }
 
   return (
