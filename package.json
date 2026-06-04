@@ -5,7 +5,9 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start"
+    "start": "next start",
+    "test": "node --test \"src/**/*.test.ts\"",
+    "test:risk": "node --test src/domain/risk/classify-risk.test.ts"
   },
   "dependencies": {
     "next": "16.2.7",
