@@ -1,0 +1,49 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+# 限制 GITHUB_TOKEN 权限为只读(防供应链攻击)
+permissions:
+  contents: read
+
+jobs:
+  ci:
+    name: Test + Build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # 跑完整测试套件(80+ case),其中包含
+      # - 风险分类(16 验收 + 多关键词 MAX + 归一化 + 边界)
+      # - 路由(12 case,安全不变量)
+      # - 教程匹配(15 case)
+      # - 求助卡 + 教给出去 lint(12 case)
+      # 任何一个 fail 都会卡住 merge
+      - name: Run tests
+        run: pnpm test
+
+      # TypeScript 严格模式 + Next.js 16 编译 + 静态分析全过
+      # build 失败也是 merge 阻断
+      - name: Production build
+        run: pnpm build
