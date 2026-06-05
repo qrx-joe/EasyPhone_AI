@@ -30,6 +30,7 @@
  * - 改 prompt / schema → 重跑 `risk-recheck.test.ts`,并人工 review 5+ 边界 case。
  * - 审计日志格式改了要同步改日志聚合端的解析(如果有)。
  */
+import { createHash } from 'node:crypto'
 import type { RiskClassification } from '../../domain/risk/types.ts'
 import {
   defaultDeepSeekClient,
@@ -166,7 +167,7 @@ export async function recheckLowRisk(
  * 格式:
  *   {
  *     ts: ISO 时间戳,
- *     inputHash: sha256(text).slice(0, 8),
+ *     inputHash: sha256(text) 的十六进制前 8 位(node:crypto 同步),
  *     textLen: number,
  *     keywordLevel: 'low' | ...,
  *     decision: 'keep' | 'escalate',
@@ -186,9 +187,7 @@ function logAndReturn(
   classification: RiskClassification,
 ): AiRecheckResult {
   const latencyMs = Date.now() - start
-  // 异步 hash 太大;同步的 sha256 需 crypto.subtle(Promise),降级用 djb2 即可
-  // —— 这是审计级 hash,不要密码学强度
-  const inputHash = djb2Hash(text).toString(16).padStart(8, '0').slice(0, 8)
+  const inputHash = auditInputHash(text)
 
   const line = {
     ts: new Date().toISOString(),
@@ -207,14 +206,15 @@ function logAndReturn(
 }
 
 /**
- * djb2 字符串 hash —— 审计用,非密码学。
- * Node 标准库没同步 sha256(只有 crypto.subtle 是异步的);
- * 为日志同步路径用 djb2 足够(只要不冲突就够辨识)。
+ * 审计用 input hash —— 同步 sha256 前 8 位十六进制。
+ *
+ * 同步性:`node:crypto.createHash` 是同步 API(只有浏览器 `crypto.subtle.digest`
+ * 才是 Promise)。审计路径要同步,这里没包袱。
+ *
+ * 强度:不是密码学用途,只用于日志聚合端的去重 key。8 位 hex = 32 bit,
+ * 理论碰撞率高于密码学 sha256,但比 djb2(同样 32 bit 输出)分布好得多,
+ * 也对真实文本模式(短句 / 含中文)的区分力明显更强。
  */
-function djb2Hash(str: string): number {
-  let hash = 5381
-  for (let i = 0; i < str.length; i++) {
-    hash = (hash * 33) ^ str.charCodeAt(i)
-  }
-  return hash >>> 0
+export function auditInputHash(text: string): string {
+  return createHash('sha256').update(text).digest('hex').slice(0, 8)
 }

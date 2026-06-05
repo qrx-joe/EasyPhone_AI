@@ -29,13 +29,21 @@
  * 风险提醒页 —— 家人求助卡的真实集成。
  *
  * 数据流(同 docs/06 M4 验收):
- *   1. server: 读 ?text=
- *   2. server: 重新跑 classifyRiskByRules(text) —— **不信任 URL 里的 level/keywords/reason**
- *      任何 URL 篡改(降级 level、删除 reason 试图绕过文案)都无效
- *   3. server: 如果分类结果不是 high/critical → 兜底 redirect 到 /confirm
+ *   1. server: 读 ?text=&source=&level=&reason=
+ *   2. server: 如果 source=ai → 信任 AI 升级(不再用 classifyRiskByRules 二次降级);
+ *      否则 → 重新跑 classifyRiskByRules(text) 作为防 URL 篡改的兜底
+ *   3. server: 兜底路径(非 source=ai)如果分类结果不是 high/critical → redirect
  *      (防御性:即使有人手动拼 /risk-alert?text=微信没声音,也会被路由到正确页面)
  *   4. server: buildHelpRequest(question) 一次性打包好卡片数据
  *   5. client: 渲染 + 复制 + 模拟发送
+ *
+ * ## 威胁模型(可手拼 ?source=ai 怎么办)
+ * 用户理论上可以手拼 `/risk-alert?text=hello&source=ai` 强制进风险页。
+ * 这是 "烦人但安全" 的取舍:
+ *   - 风险页 = 家人求助卡,文案保守、不会教错(不会教"把验证码发给我"等)
+ *   - 关键词保险丝仍然主导:正常 high/critical 文本不带 source=ai 也会被关键词分流
+ *   - 唯一被绕过的边界:原本是 low/medium 的输入也能进风险页 → 用户"多看一次求助卡"
+ *   - 失败模式偏保守 → 不破坏 "宁可错升" 的安全哲学
  *
  * URL 上不再依赖首页传的 level/keywords/reason(query 简化)—— 首页实现保留向后兼容,
  * 多余参数被忽略即可,不影响 server 决策。
@@ -52,18 +60,42 @@ import type { HelpRequest } from '@/domain/help/help-request'
 import { RiskAlertClient } from './risk-alert-client'
 
 interface PageProps {
-  searchParams: Promise<{ text?: string }>
+  searchParams: Promise<{
+    text?: string
+    /** 信任信号:route-with-ai 的 AI 升级路径会带 source=ai */
+    source?: string
+    /** 可选:AI 升级时带的 level(high) + reason(AI 兜底:...),用于显示 */
+    level?: string
+    reason?: string
+  }>
 }
 
 export default async function RiskAlertPage({ searchParams }: PageProps) {
-  const { text } = await searchParams
+  const { text, source, level, reason } = await searchParams
   const cleanText = (text ?? '').trim()
   if (!cleanText) {
     // text 缺失或纯空白 → 兜底回首页
     redirect('/')
   }
 
-  // 重新跑分类(忽略 URL 里可能存在的 level/keywords/reason,防篡改)
+  // AI 升级路径:信任 route-with-ai 的判断,不再用 classifyRiskByRules 二次降级。
+  // 理由:AI 嗅到的是语义风险(冒充亲属、扫二维码入群等),关键词规则看不到;
+  // 如果这里再跑一遍 classifyRiskByRules,会基于 "我闺女" 等子串判为 low,
+  // 然后把 AI 升级的决策"擦掉" → 老人被骗没人拦。
+  if (source === 'ai') {
+    const aiLevel: 'high' | 'critical' = level === 'critical' ? 'critical' : 'high'
+    const aiReason = (reason ?? '').trim() || 'AI 嗅到风险信号,建议联系家人确认'
+    const risk = {
+      level: aiLevel,
+      matchedKeywords: [] as string[],
+      reason: aiReason,
+    }
+    const question = createQuestion(cleanText, 'text', risk)
+    const help: HelpRequest = buildHelpRequest(question)
+    return <RiskAlertClient help={help} />
+  }
+
+  // 非 source=ai 路径:重新跑分类(忽略 URL 里可能存在的 level/keywords/reason,防篡改)
   const risk = classifyRiskByRules(cleanText)
 
   // 防御:非高风险输入不应该到这里 —— 兜底路由到正确路径

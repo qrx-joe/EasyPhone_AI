@@ -40,15 +40,17 @@
  *   - 出错时给「下一步怎么做」(用打字告诉我)
  */
 
+import { useRef } from 'react'
 import { useRouter } from 'next/navigation'
 
-import { routeToInput } from '@/domain/routing/user-routing'
-import { fetchRoute } from '@/lib/ai/fetch-route'
+import { routeWithFallback } from '@/lib/ai/client-route'
 
 import { useSpeechRecognition } from './use-speech-recognition.ts'
 
 export function VoiceInputButton() {
   const router = useRouter()
+  // in-flight 守卫:和 <HomePage> 同款,连说两次只走最后一次的路由
+  const inFlightRef = useRef<AbortController | null>(null)
   const { state, transcript, errorMessage, isSupported, start, stop } =
     useSpeechRecognition({
       onFinal: (text) => {
@@ -56,13 +58,10 @@ export function VoiceInputButton() {
         // useSpeechRecognition 不 await onFinal,所以这里 fire-and-forget,
         // 但内部用 try/catch 保证不会冒泡到语音状态机
         void (async () => {
-          try {
-            const { href } = await fetchRoute(text)
-            router.push(href)
-          } catch (err) {
-            console.warn('[voice] /api/route failed, falling back to keyword routing', err)
-            routeToInput(router, text)
-          }
+          inFlightRef.current?.abort()
+          const ctrl = new AbortController()
+          inFlightRef.current = ctrl
+          await routeWithFallback(router, text, 'voice', { signal: ctrl.signal })
         })()
       },
     })

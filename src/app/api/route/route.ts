@@ -40,6 +40,10 @@ export async function POST(request: Request): Promise<Response> {
     return NextResponse.json({ error: 'invalid json' }, { status: 400 })
   }
 
+  if (body === null || typeof body !== 'object' || Array.isArray(body)) {
+    return NextResponse.json({ error: 'invalid json' }, { status: 400 })
+  }
+
   if (typeof body.text !== 'string') {
     return NextResponse.json({ error: 'text must be string' }, { status: 400 })
   }
