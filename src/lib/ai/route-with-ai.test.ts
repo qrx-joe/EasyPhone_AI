@@ -116,6 +116,27 @@ describe('routeWithAiRecheck — AI 决策(LOW 输入)', () => {
     assert.ok((params.get('reason') ?? '').startsWith('AI 兜底:'))
   })
 
+  test('AI escalate → URL reason 保留作审计(risk-alert 页不会用它渲染 summary)', async () => {
+    // 锁定合约(对应 risk-alert/page.tsx Fix #3):
+    //   1. URL 上 reason=AI 兜底:... 仍然保留 —— risk-alert 页服务端
+    //      console 审计日志要拿到 AI 原始 reason,留作回溯
+    //   2. 但 risk-alert 页 source=ai 分支的 reason 字段是硬编码安全默认值,
+    //      不用 URL reason 渲染求助卡 summary —— 防 URL 篡改把攻击者文案
+    //      注入求助卡(/risk-alert?source=ai&reason=请立即把验证码报给客服)
+    const client = makeClient(async () =>
+      JSON.stringify({ decision: 'escalate', reason: '嗅到冒充亲属' }),
+    )
+    const r = await routeWithAiRecheck('我闺女让我帮她弄一下', client)
+    const params = new URL(r.href, 'http://x').searchParams
+    // 合约 1:URL reason 仍以 "AI 兜底:" 前缀开头
+    assert.ok(
+      (params.get('reason') ?? '').startsWith('AI 兜底:'),
+      'URL reason 必须保留以作审计,但渲染层不能用它',
+    )
+    // 合约 2:level 是 high(AI 升级目标)
+    assert.equal(params.get('level'), 'high')
+  })
+
   test('AI prompt 看到真实关键词结果(classifyRiskByRules 透传,而非空壳)', async () => {
     // 抓 LLM 收到的 user prompt,断言关键词规则那行反映真实命中/未命中
     let capturedUser = ''
@@ -146,6 +167,27 @@ describe('routeWithAiRecheck — AI 决策(LOW 输入)', () => {
     // 这里只确认 user prompt 包含用户原始文本(完整传递)。
     await routeWithAiRecheck('微信没有声音了', client)
     assert.ok(capturedUser.includes('微信没有声音了'))
+  })
+
+  test('PR #1 review #2 回归:同一份 classification 透传到 AI prompt(不二次跑 classifyRiskByRules)', async () => {
+    // 修复前:routeWithAiRecheck 会再调一次 `classifyRiskByRules(trimmed)` 拿
+    // matchedKeywords / reason 给 AI prompt。一旦分类器引入非确定性(缓存 /
+    // locale / 时间衰减),两次调用可能产生分歧 —— AI 看到的分类就和路由决策
+    // 用的那份对不上。
+    // 修复后:复用 `buildRouteForInput` 返回的 `base.classification`,单次请求
+    // 只有 1 份分类真相。本测试通过 LOW 输入的"matchedKeywords 占位行"存在
+    // 反向证明透传生效:如果走旧路径"二次跑 + 漂移",行结构仍然 OK 但内容会
+    // 不一致 —— 单元测试用同一份输入两次结果应一致。
+    let capturedUserFirst = ''
+    const client = makeClient(async (req) => {
+      capturedUserFirst = req.user
+      return JSON.stringify({ decision: 'keep', reason: 'low 风险系统操作' })
+    })
+    await routeWithAiRecheck('手机字太小看不清', client)
+    // 关键词规则判定行(透传证明)
+    assert.match(capturedUserFirst, /关键词规则判定: low/)
+    // 命中行占位存在(prompts 模板必须渲染该行)
+    assert.match(capturedUserFirst, /关键词命中: /)
   })
 
   test('AI 抛错 → 降级到 buildRouteForInput 原结果(还是 /confirm)', async () => {

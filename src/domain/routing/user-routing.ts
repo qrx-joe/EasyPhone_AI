@@ -8,7 +8,9 @@
  * - `router`: Next.js `useRouter()` 返回的 router(只要 `push` 方法,接口极简)
  *
  * ## 输出
- * - `buildRouteForInput(text)`: { href, level } 纯函数,不依赖 Router
+ * - `buildRouteForInput(text)`: `{ href, level, classification }` 纯函数,不依赖 Router
+ *   (`classification` 来自同一份 `classifyRiskByRules` 调用,strict superset,
+ *   上游 route-with-ai 复用避免二次跑分类)
  * - `routeToInput(router, text)`: 实际执行 router.push(href)
  *
  * ## 定位
@@ -49,7 +51,7 @@
  */
 
 import { classifyRiskByRules } from '../risk/classify-risk.ts'
-import { shouldStopGuidance } from '../risk/types.ts'
+import { shouldStopGuidance, type RiskClassification } from '../risk/types.ts'
 
 /**
  * 路由结果。给调用方两个信息:
@@ -62,17 +64,37 @@ export interface RouteDecision {
 }
 
 /**
+ * 空文本兜底用的占位 classification(无关键词命中 → low + 空数组 + 空 reason)。
+ * 提取为常量,避免 `buildRouteForInput` 内部构造魔法对象(也方便测试断言"占位"语义)。
+ */
+const EMPTY_CLASSIFICATION: RiskClassification = {
+  level: 'low',
+  matchedKeywords: [],
+  reason: '',
+}
+
+/**
  * 给定用户输入,决定跳哪个页面。
  *
  * 纯函数。不读 router、不读 history、不读 window —— 测试友好。
  *
+ * 返回值:`RouteDecision & { classification: RiskClassification }` —— 在原有
+ * `{ href, level }` 之上叠加本次分类结果(level / matchedKeywords / reason),
+ * 方便上游(route-with-ai 等)直接复用同一份分类对象喂给 AI,避免二次跑
+ * `classifyRiskByRules` 时的非确定性风险(形态 ① 安全保险丝)。
+ *
+ * 对 12 个安全不变量测试保持兼容:它们只读 `r.level` / `r.href`,新增的
+ * `classification` 字段是 strict superset,无破坏。
+ *
  * @param text 用户输入的原始文本(text / voice 转写 / demo 模拟输入)
  */
-export function buildRouteForInput(text: string): RouteDecision {
+export function buildRouteForInput(
+  text: string,
+): RouteDecision & { readonly classification: RiskClassification } {
   const trimmed = text.trim()
   if (!trimmed) {
     // 空文本兜底:回首页让用户重新输入
-    return { href: '/', level: 'low' }
+    return { href: '/', level: 'low', classification: EMPTY_CLASSIFICATION }
   }
 
   const r = classifyRiskByRules(trimmed)
@@ -83,11 +105,19 @@ export function buildRouteForInput(text: string): RouteDecision {
     qs.set('level', r.level)
     qs.set('keywords', r.matchedKeywords.join(','))
     qs.set('reason', r.reason)
-    return { href: `/risk-alert?${qs.toString()}`, level: r.level }
+    return {
+      href: `/risk-alert?${qs.toString()}`,
+      level: r.level,
+      classification: r,
+    }
   }
 
   // 低/中风险:进 /confirm(确认页),后续会再路由到 /tutorial
-  return { href: `/confirm?${qs.toString()}`, level: r.level }
+  return {
+    href: `/confirm?${qs.toString()}`,
+    level: r.level,
+    classification: r,
+  }
 }
 
 /**

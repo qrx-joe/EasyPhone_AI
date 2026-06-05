@@ -52,7 +52,7 @@ import { fetchRoute } from './fetch-route.ts'
  */
 export interface RouteWithFallbackOptions {
   signal?: AbortSignal
-  fetchRouteImpl?: (text: string) => Promise<RouteDecision>
+  fetchRouteImpl?: (text: string, signal?: AbortSignal) => Promise<RouteDecision>
 }
 
 /**
@@ -81,7 +81,7 @@ export async function routeWithFallback(
   const { signal, fetchRouteImpl = fetchRoute } = options
 
   try {
-    const { href } = await fetchRouteImpl(text)
+    const { href } = await fetchRouteImpl(text, signal)
     if (signal?.aborted) return
     router.push(href)
   } catch (err) {

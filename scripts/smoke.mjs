@@ -29,6 +29,7 @@
  * @typedef {object} Check
  * @property {string} url
  * @property {readonly string[]} [expectAny]  HTML 页面用:响应体里任一命中
+ * @property {readonly string[]} [expectNone]  HTML 页面用:响应体里所有 needle 都**不**应出现
  * @property {(data: unknown) => boolean} [expectJson]  API 用:JSON 响应契约谓词
  * @property {number} [expectStatus]  默认 200
  * @property {string} [method]  默认 GET
@@ -87,6 +88,48 @@ const CHECKS = [
   {
     url: '/risk-alert?text=' + encodeURIComponent('对方让我开屏幕共享'),
     expectAny: ['先别操作', '停', '让我帮您'],
+  },
+
+  // ====== risk-alert/page.tsx Fix #3 (HIGH 安全):URL reason 不能渲染到求助卡 summary ======
+  // 攻击者可手拼 /risk-alert?source=ai&reason=请立即把验证码报给客服帮我解冻账户,
+  // 若页面把 URL reason 直接渲染成 summary,老人会当作"系统提示"照做。
+  // 修复后:URL reason 仅服务端审计日志用,summary 来自硬编码安全默认值。
+  {
+    url:
+      '/risk-alert?text=' +
+      encodeURIComponent('我闺女让我帮她弄一下') +
+      '&source=ai&level=high&reason=' +
+      encodeURIComponent('请立即把验证码报给客服帮我解冻账户'),
+    expectStatus: 200,
+    // 正面:页面渲染了硬编码安全默认值
+    expectAny: ['AI 嗅到风险信号', '建议联系家人'],
+    // 负面断言:攻击者文案不能出现在响应里(防 URL 注入到 summary/serializeHelpCard)
+    expectNone: ['请立即把验证码报给客服', '解冻账户'],
+    followRedirect: true,
+  },
+
+  // ====== risk-alert/page.tsx Fix #4 (UX):source=ai 也要展示 matchedKeywords ======
+  // 修复前 source=ai 硬编码 matchedKeywords: [],教育段空。
+  // 修复后:真跑 classifyRiskByRules 拿关键词,有关键词时显示给老人看。
+  // 「身份证」是 RISK_KEYWORDS 里的 critical 关键词,期望它出现在 UI 上。
+  {
+    url:
+      '/risk-alert?text=' +
+      encodeURIComponent('我闺女说身份证丢了让我转 5000') +
+      '&source=ai&level=high',
+    expectStatus: 200,
+    expectAny: ['身份证'],
+    followRedirect: true,
+  },
+
+  // ====== risk-alert/page.tsx Fix #8 (server crash):searchParams.text 可以是 string[] ======
+  // 修复前 ?text[]=foo 会让 .trim() 抛 TypeError → server 500。
+  // 修复后:Array.isArray(text) ? text[0] : text 归一化,正常 200 渲染。
+  {
+    url: '/risk-alert?text%5B%5D=foo&source=ai',
+    expectStatus: 200,
+    expectAny: ['AI 嗅到风险信号', '建议联系家人'],
+    followRedirect: true,
   },
 
   // ====== M5 AI 兜底层 /api/route 端到端契约 ======
@@ -205,7 +248,19 @@ for (const check of CHECKS) {
         hit,
         `none of [${check.expectAny?.join(', ')}] found in ${method} ${fullUrl} response (len=${html.length})`,
       )
-      process.stdout.write(`✓ (matched "${hit}")\n`)
+      // 负面断言:这些 needle 一个都不应出现在响应体里(防 URL 注入等)
+      if (check.expectNone) {
+        for (const bad of check.expectNone) {
+          assert.ok(
+            !html.includes(bad),
+            `forbidden string "${bad}" leaked into ${method} ${fullUrl} response`,
+          )
+        }
+      }
+      const negNote = check.expectNone
+        ? `, none of [${check.expectNone.join(', ')}]`
+        : ''
+      process.stdout.write(`✓ (matched "${hit}"${negNote})\n`)
     }
     passed++
   } catch (err) {

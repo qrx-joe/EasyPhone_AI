@@ -33,8 +33,6 @@ import {
   buildRouteForInput,
   type RouteDecision,
 } from '../../domain/routing/user-routing.ts'
-import { classifyRiskByRules } from '../../domain/risk/classify-risk.ts'
-import type { RiskClassification } from '../../domain/risk/types.ts'
 import { defaultDeepSeekClient, type DeepSeekClient } from './deepseek-client.ts'
 import { recheckLowRisk } from './risk-recheck.ts'
 
@@ -43,9 +41,15 @@ import { recheckLowRisk } from './risk-recheck.ts'
  *
  * 流程:
  *   1. trim(text) → 统一入口(避免 /risk-alert URL 和 AI prompt 看到不同形态)
- *   2. buildRouteForInput(trimmed) ←── 关键词保险丝(不动)
- *   3. if level === 'low' → recheckLowRisk(trimmed, classifyRiskByRules(trimmed), client)
+ *   2. buildRouteForInput(trimmed) ←── 关键词保险丝(不动);**自带 classification**
+ *   3. if base.level === 'low' → recheckLowRisk(trimmed, base.classification, client)
  *   4. AI escalate ? 覆盖为 /risk-alert?source=ai : 保持原路
+ *
+ * 关键修复(PR #1 review #2):
+ *   旧版曾在此处二次调用 `classifyRiskByRules(trimmed)` 拿 matchedKeywords / reason;
+ *   一旦分类器引入非确定性(缓存 / locale / 时间衰减)就会和 `buildRouteForInput`
+ *   内部那次调用产生分歧,导致 AI 看到与路由决策不同的分类视图。
+ *   现在直接复用 `base.classification`,保证单次请求只有 1 份分类真相。
  *
  * 任何步骤异常(理论上 recheckLowRisk 内部已 fail-open)→ 兜底返回 buildRouteForInput。
  *
@@ -65,17 +69,12 @@ export async function routeWithAiRecheck(
     return base
   }
 
-  // 构造一份 classification 给 AI 看(关键词规则的视角)
-  // buildRouteForInput 不返回 classification,这里重新跑一份纯函数;
-  // 接受这个成本,因为它仍然是纯函数 + 无 I/O,代价可忽略
-  // base.level === 'low' 时,classifyRiskByRules(trimmed).level 也 === 'low'
-  // (因为 buildRouteForInput 内部用的就是同一个 classifyRiskByRules)
-  // —— 所以这里复用 base.level 安全;但 matchedKeywords / reason 仍是真实关键词结果
-  const classification: RiskClassification = classifyRiskByRules(trimmed)
-
+  // 复用 `buildRouteForInput` 自带的 classification —— 同一份分类结果同时
+  // 用于 (a) 路由决策 和 (b) 喂给 AI。消除二次跑 `classifyRiskByRules` 引入的
+  // 非确定性风险(形态 ① 安全保险丝)。
   let ai
   try {
-    ai = await recheckLowRisk(trimmed, classification, client)
+    ai = await recheckLowRisk(trimmed, base.classification, client)
   } catch {
     // recheckLowRisk 内部已经 fail-open,理论上不会到这里;
     // 留一个保险:万一是上游 bug,也回退到关键词结果

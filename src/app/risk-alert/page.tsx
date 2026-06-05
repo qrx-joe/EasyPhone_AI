@@ -72,7 +72,12 @@ interface PageProps {
 
 export default async function RiskAlertPage({ searchParams }: PageProps) {
   const { text, source, level, reason } = await searchParams
-  const cleanText = (text ?? '').trim()
+
+  // Fix #8:searchParams.text 在多值 query 下可能是 string[]。
+  // 直接对数组 .trim() 会抛 TypeError 把 server component 砸成 500。
+  // 归一化到 string 后再 trim,处理 string / string[] / undefined 三种形态。
+  const text0 = Array.isArray(text) ? text[0] : text
+  const cleanText = (text0 ?? '').trim()
   if (!cleanText) {
     // text 缺失或纯空白 → 兜底回首页
     redirect('/')
@@ -84,12 +89,38 @@ export default async function RiskAlertPage({ searchParams }: PageProps) {
   // 然后把 AI 升级的决策"擦掉" → 老人被骗没人拦。
   if (source === 'ai') {
     const aiLevel: 'high' | 'critical' = level === 'critical' ? 'critical' : 'high'
-    const aiReason = (reason ?? '').trim() || 'AI 嗅到风险信号,建议联系家人确认'
+
+    // Fix #3:URL 上的 reason 是攻击者可控的,绝不能直接渲染到
+    // 用户可见的 summary(「求助卡内容」)上 —— 攻击者可手拼
+    // /risk-alert?source=ai&reason=请立即把验证码报给客服帮我解冻账户,
+    // 把这条投到官方页面上,老人会当作"系统提示"照做。
+    //
+    // 这里用一个**与 URL 无关的安全默认值**作为 reason,让求助卡 summary
+    // 永远来自服务端白名单,不可被 URL 篡改。
+    //
+    // Fix #4:matchedKeywords 不再硬编码 [],而是真跑一遍
+    // classifyRiskByRules(cleanText) 拿关键词结果 —— 这一路是 AI 升级,
+    // 关键词可能没命中(语义风险),但有命中时要把"危险词"也展示给老人看
+    // (同 medical-sms / public-security 路径的体验)。
+    //
+    // 注意:这里**只复用** matchedKeywords,不影响 level(level 走 aiLevel)。
+    const keywordClassification = classifyRiskByRules(cleanText)
     const risk = {
       level: aiLevel,
-      matchedKeywords: [] as string[],
-      reason: aiReason,
+      matchedKeywords: keywordClassification.matchedKeywords,
+      reason: 'AI 嗅到风险信号,建议联系家人确认',
     }
+
+    // URL 上的 reason 仅用于服务端审计日志(不参与渲染),保留诊断价值。
+    // M5.1+ 可改为 HMAC 签名或服务端校验,届时再放回 reason 字段。
+    if (reason) {
+      // eslint-disable-next-line no-console
+      console.info(
+        '[risk-alert] source=ai reason(audit-only, not rendered):',
+        reason,
+      )
+    }
+
     const question = createQuestion(cleanText, 'text', risk)
     const help: HelpRequest = buildHelpRequest(question)
     return <RiskAlertClient help={help} />
