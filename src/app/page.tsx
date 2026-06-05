@@ -48,6 +48,7 @@ import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 
 import { routeToInput } from '@/domain/routing/user-routing'
+import { fetchRoute } from '@/lib/ai/fetch-route'
 import { VoiceInputButton } from '@/lib/speech/voice-input-button'
 
 const DEMO_CASES = [
@@ -62,8 +63,22 @@ export default function HomePage() {
   const [textInput, setTextInput] = useState('')
 
   // 走统一路由函数(安全核心:高风险绝不走 /confirm)
-  function goConfirm(text: string): void {
-    routeToInput(router, text)
+  //
+  // 流程:
+  //   1. POST /api/route(text) — server 跑关键词保险丝 + AI 兜底
+  //   2. 拿最终 { href, level } 走 router.push
+  //   3. 失败时降级到 client-side routeToInput()(同步,纯关键词保险丝)
+  //
+  // 降级路径是关键词保险丝的"双保险":即使 /api/route 整层挂掉,
+  // 老人产品仍然安全(只是失去 AI 兜底,关键词 16 个验收用例照常生效)。
+  async function goConfirm(text: string): Promise<void> {
+    try {
+      const { href } = await fetchRoute(text)
+      router.push(href)
+    } catch (err) {
+      console.warn('[home] /api/route failed, falling back to keyword routing', err)
+      routeToInput(router, text)
+    }
   }
 
   return (

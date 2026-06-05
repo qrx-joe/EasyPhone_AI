@@ -43,6 +43,7 @@
 import { useRouter } from 'next/navigation'
 
 import { routeToInput } from '@/domain/routing/user-routing'
+import { fetchRoute } from '@/lib/ai/fetch-route'
 
 import { useSpeechRecognition } from './use-speech-recognition.ts'
 
@@ -51,9 +52,18 @@ export function VoiceInputButton() {
   const { state, transcript, errorMessage, isSupported, start, stop } =
     useSpeechRecognition({
       onFinal: (text) => {
-        // 走统一路由函数 —— 跟 <HomePage> 的 goConfirm 是同一份代码
-        // 安全核心:高风险绝不走 /confirm
-        routeToInput(router, text)
+        // 跟 <HomePage> 的 goConfirm 走同一路径:AI 兜底 → 失败时关键词保险丝
+        // useSpeechRecognition 不 await onFinal,所以这里 fire-and-forget,
+        // 但内部用 try/catch 保证不会冒泡到语音状态机
+        void (async () => {
+          try {
+            const { href } = await fetchRoute(text)
+            router.push(href)
+          } catch (err) {
+            console.warn('[voice] /api/route failed, falling back to keyword routing', err)
+            routeToInput(router, text)
+          }
+        })()
       },
     })
 
