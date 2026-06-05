@@ -112,7 +112,10 @@ describe('buildRouteForInput — 兜底', () => {
 
 describe('routeToInput — Router 集成', () => {
   test('调用 router.push(buildRouteForInput 的 href)', () => {
-    let pushed: string | null = null
+    // `as` cast 突破 closure narrowing:TS 不会追踪 fakeRouter.push 里的赋值,
+    // 如果显式标 `: string | null = null`,后续 pushed 会被 narrow 成 `null`,
+    // `null?.startsWith(...)` 让链式访问推为 `never`。
+    let pushed = null as string | null
     const fakeRouter = {
       push: (href: string) => {
         pushed = href
@@ -123,7 +126,7 @@ describe('routeToInput — Router 集成', () => {
   })
 
   test('空文本时 router.push("/")', () => {
-    let pushed: string | null = null
+    let pushed = null as string | null
     const fakeRouter = {
       push: (href: string) => {
         pushed = href
@@ -131,5 +134,36 @@ describe('routeToInput — Router 集成', () => {
     }
     routeToInput(fakeRouter, '')
     assert.equal(pushed, '/')
+  })
+})
+
+describe('buildRouteForInput — classification 透传(PR #1 review #2)', () => {
+  // PR #1 review finding #2:routeWithAiRecheck 之前会二次跑 `classifyRiskByRules`
+  // 拿 matchedKeywords / reason。一旦分类器引入非确定性(缓存 / locale / 时间衰减),
+  // 两次调用会得到不同结果,导致 AI 看到与路由决策不一致的分类。
+  // 修复:`buildRouteForInput` 直接返回 classification,上游只跑一次。
+  // 这两个测试锁住"返回值自带 classification,内容真实反映 classifyRiskByRules 输出"。
+
+  test('critical 输入 → classification.matchedKeywords 包含"验证码"(同一份分类对象)', () => {
+    const r = buildRouteForInput('把验证码发我')
+    // 关键断言:classification 字段存在 + 包含真实命中词
+    assert.ok(r.classification, '返回值必须带 classification 字段(PR #1 review #2 修复)')
+    assert.equal(r.classification.level, 'critical')
+    assert.ok(
+      r.classification.matchedKeywords.includes('验证码'),
+      `classification.matchedKeywords 应包含"验证码",实际 ${JSON.stringify(r.classification.matchedKeywords)}`,
+    )
+  })
+
+  test('low 输入(微信没声音)→ classification.level === "low" 且无关键词命中', () => {
+    const r = buildRouteForInput('微信没有声音了')
+    assert.ok(r.classification, 'low 输入也必须带 classification 字段')
+    assert.equal(r.classification.level, 'low')
+    assert.deepEqual(
+      r.classification.matchedKeywords,
+      [],
+      'low 输入应无关键词命中(回归空数组契约)',
+    )
+    assert.equal(r.classification.reason, '')
   })
 })

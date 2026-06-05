@@ -45,9 +45,9 @@
  */
 
 import { useRouter } from 'next/navigation'
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 
-import { routeToInput } from '@/domain/routing/user-routing'
+import { routeWithFallback } from '@/lib/ai/client-route'
 import { VoiceInputButton } from '@/lib/speech/voice-input-button'
 
 const DEMO_CASES = [
@@ -62,8 +62,20 @@ export default function HomePage() {
   const [textInput, setTextInput] = useState('')
 
   // 走统一路由函数(安全核心:高风险绝不走 /confirm)
-  function goConfirm(text: string): void {
-    routeToInput(router, text)
+  //
+  // 流程见 @/lib/ai/fetch-route 的 routeWithFallback —— 单一 source of truth:
+  //   1. POST /api/route(text) — server 跑关键词保险丝 + AI 兜底
+  //   2. 拿最终 { href, level } 走 router.push
+  //   3. 失败时降级到 client-side routeToInput()(同步,纯关键词保险丝)
+  //
+  // in-flight 守卫:连点/连按会把旧 controller abort 掉,旧 promise resolve 时
+  // helper 内部短路、不再 push,避免「新提交路径被旧结果覆盖」的闪烁/错跳。
+  const inFlightRef = useRef<AbortController | null>(null)
+  async function goConfirm(text: string): Promise<void> {
+    inFlightRef.current?.abort()
+    const ctrl = new AbortController()
+    inFlightRef.current = ctrl
+    await routeWithFallback(router, text, 'home', { signal: ctrl.signal })
   }
 
   return (
