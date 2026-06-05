@@ -34,10 +34,25 @@ const BASE = process.env.SMOKE_BASE ?? 'http://localhost:3000'
 
 /** @type {readonly Check[]} */
 const CHECKS = [
+  // 首页
   {
     url: '/',
     expectAny: ['爸妈别急', '您遇到什么问题'],
   },
+  // 真实流程路径(不经过 demo 直链)
+  {
+    url: '/tutorial?text=' + encodeURIComponent('微信没有声音了'),
+    expectAny: ['让微信声音回来', '打开微信', '好了,下一步'],
+  },
+  {
+    url: '/tutorial?text=' + encodeURIComponent('手机字太小看不清'),
+    expectAny: ['把手机字变大', '设置', '好了,下一步'],
+  },
+  {
+    url: '/confirm?text=' + encodeURIComponent('微信没有声音了'),
+    expectAny: ['您是不是想解决', '微信没有声音了'],
+  },
+  // Demo 直链(给投资人/家人看)
   {
     url: '/tutorial/demo?case=wechat',
     expectAny: ['您是不是想解决', '微信没有声音'],
@@ -57,6 +72,11 @@ const CHECKS = [
     url: '/risk-alert/demo?case=public-security',
     expectAny: ['先别操作', '公安局', '停'],
     followRedirect: true,
+  },
+  // 风险页真流程
+  {
+    url: '/risk-alert?text=' + encodeURIComponent('对方让我开屏幕共享'),
+    expectAny: ['先别操作', '停', '让我帮您'],
   },
 ]
 
