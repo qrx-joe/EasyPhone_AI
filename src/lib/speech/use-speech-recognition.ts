@@ -55,7 +55,6 @@ import {
   explainSpeechError,
   isSpeechRecognitionSupported,
   type SpeechRecognitionFactory,
-  type SpeechRecognitionResult,
 } from './web-speech.ts'
 
 export type SpeechRecognitionState = 'idle' | 'listening' | 'ending'
@@ -97,8 +96,7 @@ export function useSpeechRecognition(
   const handleRef = useRef<ReturnType<SpeechRecognitionFactory> | null>(null)
   // 标记是否已经触发过 onFinal(防止 onend 时再触发一次)
   const finalFiredRef = useRef(false)
-  // 标记 isSupported(只在 mount 时算一次)
-  const supportedRef = useRef<boolean>(false)
+  const [isSupported, setIsSupported] = useState(false)
   // 标记 onFinal 的最新值,避免 useEffect 闭包过期
   const onFinalRef = useRef(onFinal)
   onFinalRef.current = onFinal
@@ -111,12 +109,14 @@ export function useSpeechRecognition(
   }, [errorMessage])
 
   useEffect(() => {
-    supportedRef.current = isSpeechRecognitionSupported()
+    setIsSupported(isSpeechRecognitionSupported())
   }, [])
 
   const start = useCallback(() => {
     if (state === 'listening' || state === 'ending') return
-    if (!supportedRef.current) {
+    const supportsSpeech = isSpeechRecognitionSupported()
+    setIsSupported(supportsSpeech)
+    if (!supportsSpeech) {
       setErrorMessage('您的浏览器不支持语音输入,用打字告诉我吧')
       return
     }
@@ -186,5 +186,5 @@ export function useSpeechRecognition(
     setErrorMessage(null)
   }, [])
 
-  return { state, transcript, errorMessage, isSupported: supportedRef.current, start, stop, reset }
+  return { state, transcript, errorMessage, isSupported, start, stop, reset }
 }

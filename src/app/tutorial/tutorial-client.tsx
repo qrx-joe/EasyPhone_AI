@@ -78,8 +78,8 @@ export function TutorialClient({ text, tutorial }: Props) {
     <main className="flex flex-col items-center min-h-full w-full max-w-2xl mx-auto px-6 py-8 sm:py-12">
       {/* 标题区:用户问题 + 教程名 */}
       <header className="w-full text-center mb-6">
-        <p className="text-base text-[--color-muted] mb-1">您的问题</p>
-        <p className="text-lg sm:text-xl text-[--color-foreground] mb-3 break-words">
+        <p className="text-base text-(--color-muted) mb-1">您的问题</p>
+        <p className="text-lg sm:text-xl text-(--color-foreground) mb-3 break-words">
           「{text}」
         </p>
         <h1 className="text-2xl sm:text-3xl font-bold">{tutorial.title}</h1>
@@ -93,13 +93,13 @@ export function TutorialClient({ text, tutorial }: Props) {
       {/* 进度指示器:大字号 + 进度条 */}
       <section className="w-full mb-6">
         <div className="flex items-center justify-between mb-2 px-1">
-          <span className="text-base text-[--color-muted]">{progressLabel}</span>
-          <span className="text-sm text-[--color-muted]">
+          <span className="text-base text-(--color-muted)">{progressLabel}</span>
+          <span className="text-sm text-(--color-muted)">
             {Math.round(progressPercent)}%
           </span>
         </div>
         <div
-          className="w-full h-3 bg-[--color-soft] rounded-full overflow-hidden"
+          className="w-full h-3 bg-(--color-soft) rounded-full overflow-hidden"
           role="progressbar"
           aria-valuenow={Math.round(progressPercent)}
           aria-valuemin={0}
@@ -107,24 +107,24 @@ export function TutorialClient({ text, tutorial }: Props) {
           aria-label={progressLabel}
         >
           <div
-            className="h-full bg-[--color-primary] transition-all duration-300"
+            className="h-full bg-(--color-primary) transition-all duration-300"
             style={{ width: `${progressPercent}%` }}
           />
         </div>
       </section>
 
       {/* 当前步骤 */}
-      <section className="w-full mb-8 px-6 py-8 rounded-2xl bg-[--color-primary-soft] border-2 border-[--color-primary]">
-        <p className="text-base text-[--color-muted] mb-2">
+      <section className="w-full mb-8 px-6 py-8 rounded-2xl bg-(--color-primary-soft) border-2 border-(--color-primary)">
+        <p className="text-base text-(--color-muted) mb-2">
           {currentStepIndex + 1}. {step.title}
         </p>
-        <p className="text-2xl sm:text-3xl leading-relaxed text-[--color-foreground]">
+        <p className="text-2xl sm:text-3xl leading-relaxed text-(--color-foreground)">
           {showAlternative && step.alternative
             ? step.alternative
             : step.instruction}
         </p>
         {showAlternative && step.alternative && (
-          <p className="mt-3 text-sm text-[--color-muted]">
+          <p className="mt-3 text-sm text-(--color-muted)">
             (换一种说法,看哪种您更明白)
           </p>
         )}
@@ -141,13 +141,13 @@ export function TutorialClient({ text, tutorial }: Props) {
       {/* 「点错了」警告(临时显示,点「我知道了」关闭) */}
       {showResetWarning && (
         <section
-          className="w-full mb-6 px-6 py-5 rounded-xl bg-[--color-danger-soft] border-2 border-[--color-danger]"
+          className="w-full mb-6 px-6 py-5 rounded-xl bg-(--color-danger-soft) border-2 border-(--color-danger)"
           role="alert"
         >
-          <p className="text-xl font-semibold text-[--color-danger] mb-2">
+          <p className="text-xl font-semibold text-(--color-danger) mb-2">
             先停下来
           </p>
-          <p className="text-lg leading-relaxed text-[--color-foreground]">
+          <p className="text-lg leading-relaxed text-(--color-foreground)">
             如果您刚才点错了按钮,没关系,不要再点别的。
             <br />
             让家人帮您,或者重新说一次。
@@ -164,7 +164,7 @@ export function TutorialClient({ text, tutorial }: Props) {
             setShowAlternative(false)
             setCurrentStepIndex(currentStepIndex + 1)
           }}
-          className="w-full min-h-[72px] px-6 py-4 rounded-2xl bg-[--color-primary] hover:bg-[--color-primary-hover] active:scale-[0.98] transition text-white text-2xl font-semibold shadow-sm"
+          className="w-full min-h-[72px] px-6 py-4 rounded-2xl bg-(--color-primary) hover:bg-(--color-primary-hover) active:scale-[0.98] transition text-white text-2xl font-semibold shadow-sm"
           aria-label="完成当前步骤,进入下一步"
         >
           ✓ 好了,下一步
@@ -174,7 +174,7 @@ export function TutorialClient({ text, tutorial }: Props) {
           <button
             type="button"
             onClick={() => setShowAlternative((v) => !v)}
-            className="w-full min-h-[64px] px-6 py-3 rounded-xl bg-[--color-soft] hover:bg-[--color-soft-hover] active:scale-[0.99] transition text-[--color-foreground] text-xl font-medium border border-[--color-border]"
+            className="w-full min-h-[64px] px-6 py-3 rounded-xl bg-(--color-soft) hover:bg-(--color-soft-hover) active:scale-[0.99] transition text-(--color-foreground) text-xl font-medium border border-(--color-border)"
             aria-pressed={showAlternative}
             aria-label="换一种说法解释这一步"
           >
@@ -185,7 +185,7 @@ export function TutorialClient({ text, tutorial }: Props) {
         <button
           type="button"
           onClick={() => setShowResetWarning((v) => !v)}
-          className="w-full min-h-[64px] px-6 py-3 rounded-xl bg-[--color-soft] hover:bg-[--color-soft-hover] active:scale-[0.99] transition text-[--color-foreground] text-xl font-medium border border-[--color-border]"
+          className="w-full min-h-[64px] px-6 py-3 rounded-xl bg-(--color-soft) hover:bg-(--color-soft-hover) active:scale-[0.99] transition text-(--color-foreground) text-xl font-medium border border-(--color-border)"
           aria-pressed={showResetWarning}
           aria-label="如果点错了按钮,先停下来"
         >
@@ -193,8 +193,8 @@ export function TutorialClient({ text, tutorial }: Props) {
         </button>
       </section>
 
-      <footer className="mt-auto pt-8 text-center text-base text-[--color-muted]">
-        <Link href="/" className="underline hover:text-[--color-foreground]">
+      <footer className="mt-auto pt-8 text-center text-base text-(--color-muted)">
+        <Link href="/" className="underline hover:text-(--color-foreground)">
           返回首页
         </Link>
       </footer>
@@ -210,7 +210,7 @@ function CompletedView({ text, tutorial }: Props) {
   return (
     <main className="flex flex-col items-center min-h-full w-full max-w-2xl mx-auto px-6 py-10 sm:py-16">
       <div
-        className="w-32 h-32 rounded-full bg-[--color-primary] text-white flex items-center justify-center text-6xl font-bold mb-6 shadow-md"
+        className="w-32 h-32 rounded-full bg-(--color-primary) text-white flex items-center justify-center text-6xl font-bold mb-6 shadow-md"
         aria-hidden
       >
         ✓
@@ -220,23 +220,23 @@ function CompletedView({ text, tutorial }: Props) {
         完成了
       </h1>
 
-      <p className="text-xl text-[--color-foreground] text-center mb-8 leading-relaxed">
+      <p className="text-xl text-(--color-foreground) text-center mb-8 leading-relaxed">
         您已经走完「{tutorial.title}」的所有步骤
       </p>
 
-      <section className="w-full mb-8 px-6 py-5 rounded-xl bg-[--color-soft] text-center">
-        <p className="text-base text-[--color-muted] mb-1">您之前说的是</p>
-        <p className="text-lg text-[--color-foreground] break-words">「{text}」</p>
+      <section className="w-full mb-8 px-6 py-5 rounded-xl bg-(--color-soft) text-center">
+        <p className="text-base text-(--color-muted) mb-1">您之前说的是</p>
+        <p className="text-lg text-(--color-foreground) break-words">「{text}」</p>
       </section>
 
       <section className="w-full flex flex-col gap-3">
         <Link
           href="/"
-          className="w-full text-center min-h-[64px] px-6 py-3 rounded-xl bg-[--color-primary] hover:bg-[--color-primary-hover] text-white text-xl font-semibold flex items-center justify-center"
+          className="w-full text-center min-h-[64px] px-6 py-3 rounded-xl bg-(--color-primary) hover:bg-(--color-primary-hover) text-white text-xl font-semibold flex items-center justify-center"
         >
           返回首页
         </Link>
-        <p className="text-center text-base text-[--color-muted] mt-2">
+        <p className="text-center text-base text-(--color-muted) mt-2">
           如果还有别的问题,重新说一次就行
         </p>
       </section>

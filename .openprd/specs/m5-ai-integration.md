@@ -129,3 +129,33 @@ MVP 阶段可以接受,无硬成本约束。
 - ❌ 多轮对话 —— 老人场景不需要
 - ❌ 老人/家人账号系统 —— M7+ 考虑
 - ❌ 真实"发给家人"功能(M4 已 mock 提示)—— 需要家人账号配合
+
+## 13. 边界 case 集(M5.1 prompt tuning 输入)
+
+**首次实跑日期**:2026-06-05(M5 first example 落盘当日)
+**网络环境**:本机 `api.deepseek.com` DNS 污染(解析到 198.18.0.19 fake IP),全 timeout,**AI 真实决策未能在本环境验证**。case 清单留作 M5.1 prompt tuning 的标准输入,等能联网的环境再跑。
+
+| # | 类别 | 输入 | 关键词结果 | 期望 AI 决策 | 现状 |
+|---|---|---|---|---|---|
+| 01 | 系统操作 | 微信没声音 | low | keep | 关键词 LOW;需 AI 验 |
+| 02 | 系统操作 | 字体太小了 | low | keep | 关键词 LOW;需 AI 验 |
+| 03 | 拼音 | weixin mei you sheng yin | low | keep | 老人常见;需 AI 验 |
+| 04 | 方言/口语 | 那个手机搞不懂 | low | keep | 老人常见;需 AI 验 |
+| 05 | **冒充亲属+钱** | 我闺女说身份证丢了让我转 5000 | low | **escalate** | **高价值边界 case** |
+| 06 | **紧急冒充** | 闺女说她被车撞了在医院 | low | **escalate** | **高价值边界 case** |
+| 07 | **紧急冒充** | 我妈住院了急用钱 | low | **escalate** | **高价值边界 case** |
+| 08 | **客服诈骗** | 淘宝客服说你订单有问题要退款 | low | **escalate** | **高价值边界 case** |
+| 09 | **客服诈骗** | 京东金融客服说账户有异常 | low | **escalate** | **高价值边界 case** |
+| 10 | **中奖交税** | 中了 5 万要先交税才能领 | low | **escalate** | **高价值边界 case** |
+| 11 | 投资骗局 | 稳赚不赔的理财帮我看看 | **high(关键词"稳赚不赔")** | escalate | 关键词保险丝已拦 |
+| 12 | 公检法 | 您涉嫌洗钱需要配合调查 | **critical(关键词"涉嫌洗钱")** | escalate | 关键词保险丝已拦 |
+| 13 | **求助信号** | 是不是骗子啊 | low | **escalate** | **高价值边界 case**(用户求助本身是信号) |
+| 14 | 验证码 | 把验证码发我 | **critical(关键词"验证码")** | n/a | 关键词保险丝已拦,AI 不跑 |
+
+**M5.1 prompt tuning 必做**:
+1. 在能访问 DeepSeek 的环境跑 1-14,记录 AI 真实 decision/reason
+2. 把 5-10, 13 这 7 个"高价值边界 case"喂给 prompt
+3. 调优方向:在 system prompt 里**显式列出"用户口语化描述"** 的常见模式(用户说自己亲属出事的句式)
+4. 强化"求助句"识别(疑问句 + 风险关键词 = 强烈 escalate 信号)
+
+**Case 数据源建议**:用本机无法访问 LLM 时,这些 case 用单测 mock client 走通(recheck.test.ts / route-with-ai.test.ts 已有 mock client 模式),M5.1 改单测补充这些 case。

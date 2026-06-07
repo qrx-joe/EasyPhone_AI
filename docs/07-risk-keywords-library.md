@@ -351,6 +351,10 @@ CVV:     配合银行卡号出现的 3 位连续数字
 > 与 §2/§1 自身定义的关键词等级冲突。已按"老人照做后果不可逆"原则升为 `critical`,
 > 与 `src/domain/risk/classify-risk.test.ts` 的实现对齐。理由写在测试文件顶部注释里:
 > 把 spec 写错的地方修对,降回 high 等于主动拆安全保险丝。
+> 
+> **2026-06-07 再次确认**:本地改动曾把这两行降回 high 并删除本警告,已在 commit 前
+> 还原。`src/domain/risk/classify-risk.test.ts` 的实现与本表 critical 一致;本 spec 是
+> 安全不变量对应真值表,**不允许降级**,即使代码与本表冲突也应改代码,不要降 spec。
 
 ## 11. 维护规则
 

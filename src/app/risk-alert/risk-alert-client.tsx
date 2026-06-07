@@ -90,30 +90,30 @@ export function RiskAlertClient({ help }: Props) {
     <main className="flex flex-col items-center min-h-full w-full max-w-2xl mx-auto px-6 py-8 sm:py-12">
       {/* 醒目的「停」标识 */}
       <div
-        className="w-32 h-32 rounded-full bg-[--color-danger] text-white flex items-center justify-center text-6xl font-bold mb-6 shadow-md"
+        className="w-32 h-32 rounded-full bg-(--color-danger) text-white flex items-center justify-center text-6xl font-bold mb-6 shadow-md"
         aria-hidden
       >
         停
       </div>
 
-      <h1 className="text-3xl sm:text-4xl font-bold text-[--color-danger] text-center mb-4">
+      <h1 className="text-3xl sm:text-4xl font-bold text-(--color-danger) text-center mb-4">
         先别操作,这可能是诈骗
       </h1>
 
       {/* summary 人话解释 */}
-      <p className="text-xl text-[--color-foreground] text-center mb-8 leading-relaxed px-2">
+      <p className="text-xl text-(--color-foreground) text-center mb-8 leading-relaxed px-2">
         {help.summary}
       </p>
 
       {/* 「您刚才说的」段落 —— 老人自己看,学到了"为什么是危险" */}
-      <section className="w-full mb-6 px-6 py-5 rounded-xl bg-[--color-danger-soft] border-2 border-[--color-danger]">
-        <p className="text-base text-[--color-muted] mb-2">您刚才说到:</p>
-        <p className="text-xl font-medium text-[--color-foreground] break-words mb-3">
+      <section className="w-full mb-6 px-6 py-5 rounded-xl bg-(--color-danger-soft) border-2 border-(--color-danger)">
+        <p className="text-base text-(--color-muted) mb-2">您刚才说到:</p>
+        <p className="text-xl font-medium text-(--color-foreground) break-words mb-3">
           「{help.question.text}」
         </p>
         {help.question.risk.matchedKeywords.length > 0 && (
           <>
-            <p className="text-base text-[--color-muted] mb-2">
+            <p className="text-base text-(--color-muted) mb-2">
               其中 {help.question.risk.matchedKeywords.length} 个词属于诈骗
               高频用词:
             </p>
@@ -123,7 +123,7 @@ export function RiskAlertClient({ help }: Props) {
                 .map((kw) => (
                   <li
                     key={kw}
-                    className="px-3 py-1 bg-white text-[--color-danger] rounded-full text-base font-medium border border-[--color-danger]"
+                    className="px-3 py-1 bg-white text-(--color-danger) rounded-full text-base font-medium border border-(--color-danger)"
                   >
                     {kw}
                   </li>
@@ -134,7 +134,7 @@ export function RiskAlertClient({ help }: Props) {
       </section>
 
       {/* 行动指引 */}
-      <section className="w-full mb-8 px-6 py-5 rounded-xl bg-[--color-soft]">
+      <section className="w-full mb-8 px-6 py-5 rounded-xl bg-(--color-soft)">
         <h2 className="text-xl font-semibold mb-3">现在请这样做:</h2>
         <ol className="text-lg leading-loose list-decimal pl-6 space-y-1">
           {help.suggestions.map((s, i) => (
@@ -148,7 +148,7 @@ export function RiskAlertClient({ help }: Props) {
         <button
           type="button"
           onClick={handleCopy}
-          className="w-full min-h-[72px] px-6 py-4 rounded-2xl bg-[--color-primary] hover:bg-[--color-primary-hover] active:scale-[0.98] transition text-white text-2xl font-semibold shadow-sm"
+          className="w-full min-h-[72px] px-6 py-4 rounded-2xl bg-(--color-primary) hover:bg-(--color-primary-hover) active:scale-[0.98] transition text-white text-2xl font-semibold shadow-sm"
           aria-label="把家人求助卡内容复制到剪贴板"
         >
           {copyState === 'success'
@@ -161,7 +161,7 @@ export function RiskAlertClient({ help }: Props) {
         <button
           type="button"
           onClick={handleSimulatedSend}
-          className="w-full min-h-[64px] px-6 py-3 rounded-xl bg-[--color-soft] hover:bg-[--color-soft-hover] active:scale-[0.99] transition text-[--color-foreground] text-xl font-medium border border-[--color-border]"
+          className="w-full min-h-[64px] px-6 py-3 rounded-xl bg-(--color-soft) hover:bg-(--color-soft-hover) active:scale-[0.99] transition text-(--color-foreground) text-xl font-medium border border-(--color-border)"
           aria-label="模拟把卡片发给家人"
         >
           📤 模拟发给家人
@@ -169,7 +169,7 @@ export function RiskAlertClient({ help }: Props) {
 
         <Link
           href="/"
-          className="w-full text-center min-h-[64px] px-6 py-3 rounded-xl bg-[--color-soft] hover:bg-[--color-soft-hover] text-[--color-foreground] text-xl font-medium border border-[--color-border] flex items-center justify-center"
+          className="w-full text-center min-h-[64px] px-6 py-3 rounded-xl bg-(--color-soft) hover:bg-(--color-soft-hover) text-(--color-foreground) text-xl font-medium border border-(--color-border) flex items-center justify-center"
         >
           返回首页
         </Link>
@@ -178,7 +178,7 @@ export function RiskAlertClient({ help }: Props) {
       {/* 复制成功/失败的视觉反馈(独立提示,即使按钮文字回 idle 也保留一秒) */}
       {copyState === 'success' && (
         <p
-          className="text-center text-base text-[--color-primary] mb-4"
+          className="text-center text-base text-(--color-primary) mb-4"
           role="status"
         >
           已复制到剪贴板 —— 现在可以打开微信,长按输入框「粘贴」发给家人
@@ -186,7 +186,7 @@ export function RiskAlertClient({ help }: Props) {
       )}
       {copyState === 'error' && (
         <p
-          className="text-center text-base text-[--color-danger] mb-4"
+          className="text-center text-base text-(--color-danger) mb-4"
           role="alert"
         >
           自动复制失败,试试长按下面的卡片内容选中
@@ -194,19 +194,19 @@ export function RiskAlertClient({ help }: Props) {
       )}
 
       {/* 卡片纯文本预览(给老人确认"我看到的就是要发出去的" + 失败时手动复制) */}
-      <details className="w-full mb-6 px-4 py-3 rounded-xl bg-white border border-[--color-border]">
-        <summary className="text-base text-[--color-muted] cursor-pointer">
+      <details className="w-full mb-6 px-4 py-3 rounded-xl bg-white border border-(--color-border)">
+        <summary className="text-base text-(--color-muted) cursor-pointer">
           卡片内容预览(点击展开)
         </summary>
-        <pre className="mt-3 text-sm leading-relaxed whitespace-pre-wrap break-words text-[--color-foreground]">
+        <pre className="mt-3 text-sm leading-relaxed whitespace-pre-wrap break-words text-(--color-foreground)">
           {serializeHelpCard(help)}
         </pre>
       </details>
 
-      <footer className="mt-auto pt-6 text-center text-sm text-[--color-muted]">
+      <footer className="mt-auto pt-6 text-center text-sm text-(--color-muted)">
         <p>
           风险等级:
-          <span className="font-semibold text-[--color-danger]">
+          <span className="font-semibold text-(--color-danger)">
             {help.riskLevel === 'critical' ? ' 极高' : ' 高'}
           </span>
         </p>

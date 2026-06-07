@@ -30,7 +30,7 @@
  *
  * 结构(C 决策 2026-06-04):
  *   1. 大标题「爸妈别急」+ 副标「您遇到什么问题?」
- *   2. 两个并列大按钮:🎙 按住说话 / ⌨ 打字告诉我
+ *   2. 两个并列大按钮:点一下说问题 / 打字告诉我
  *   3. 三个常见问题快捷入口(微信没声音 / 字太小 / 验证码短信)
  *
  * 适老化:
@@ -82,10 +82,10 @@ export default function HomePage() {
     <main className="flex flex-col items-center min-h-full w-full max-w-2xl mx-auto px-6 py-10 sm:py-16">
       {/* 标题区 */}
       <header className="text-center mb-10 sm:mb-14">
-        <h1 className="text-4xl sm:text-5xl font-bold tracking-tight text-[--color-foreground]">
+        <h1 className="text-4xl sm:text-5xl font-bold tracking-tight text-(--color-foreground)">
           爸妈别急
         </h1>
-        <p className="mt-3 text-xl sm:text-2xl text-[--color-muted]">
+        <p className="mt-3 text-xl sm:text-2xl text-(--color-muted)">
           您遇到什么问题?
         </p>
       </header>
@@ -97,7 +97,7 @@ export default function HomePage() {
         <button
           type="button"
           onClick={() => setMode(mode === 'text' ? 'idle' : 'text')}
-          className="w-full min-h-[80px] px-6 py-4 rounded-2xl bg-[--color-soft] hover:bg-[--color-soft-hover] active:scale-[0.98] transition text-[--color-foreground] text-2xl font-semibold flex items-center justify-center gap-3 border border-[--color-border]"
+          className="w-full min-h-[80px] px-6 py-4 rounded-2xl bg-(--color-soft) hover:bg-(--color-soft-hover) active:scale-[0.98] transition text-(--color-foreground) text-2xl font-semibold flex items-center justify-center gap-3 border border-(--color-border)"
           aria-label="打字告诉我您的问题"
           aria-expanded={mode === 'text'}
         >
@@ -114,14 +114,14 @@ export default function HomePage() {
               placeholder="比如:微信没有声音了"
               rows={3}
               autoFocus
-              className="w-full px-5 py-4 text-xl rounded-xl border-2 border-[--color-border] focus:border-[--color-primary] bg-white outline-none resize-none"
+              className="w-full px-5 py-4 text-xl rounded-xl border-2 border-(--color-border) focus:border-(--color-primary) bg-white outline-none resize-none"
               aria-label="问题描述"
             />
             <button
               type="button"
               onClick={() => goConfirm(textInput)}
               disabled={!textInput.trim()}
-              className="w-full min-h-[64px] px-6 py-3 rounded-xl bg-[--color-primary] hover:bg-[--color-primary-hover] disabled:bg-[--color-muted] disabled:cursor-not-allowed transition text-white text-xl font-semibold"
+              className="w-full min-h-[64px] px-6 py-3 rounded-xl bg-(--color-primary) hover:bg-(--color-primary-hover) disabled:bg-(--color-muted) disabled:cursor-not-allowed transition text-white text-xl font-semibold"
             >
               告诉我
             </button>
@@ -131,26 +131,26 @@ export default function HomePage() {
 
       {/* 常见问题 */}
       <section className="w-full">
-        <h2 className="text-lg text-[--color-muted] mb-4 px-1">常见问题</h2>
+        <h2 className="text-lg text-(--color-muted) mb-4 px-1">常见问题</h2>
         <div className="flex flex-col gap-3">
           {DEMO_CASES.map((c) => (
             <button
               key={c.text}
               type="button"
               onClick={() => goConfirm(c.text)}
-              className="w-full min-h-[64px] px-5 py-3 rounded-xl bg-white hover:bg-[--color-soft] active:scale-[0.99] transition text-left text-xl text-[--color-foreground] border border-[--color-border] flex items-center gap-4"
+              className="w-full min-h-[64px] px-5 py-3 rounded-xl bg-white hover:bg-(--color-soft) active:scale-[0.99] transition text-left text-xl text-(--color-foreground) border border-(--color-border) flex items-center gap-4"
               aria-label={`常见问题:${c.label}`}
             >
               <span aria-hidden className="text-2xl flex-shrink-0">{c.emoji}</span>
               <span className="flex-1">{c.label}</span>
-              <span aria-hidden className="text-[--color-muted]">›</span>
+              <span aria-hidden className="text-(--color-muted)">›</span>
             </button>
           ))}
         </div>
       </section>
 
       {/* 页脚提示 */}
-      <footer className="mt-auto pt-12 text-center text-base text-[--color-muted]">
+      <footer className="mt-auto pt-12 text-center text-base text-(--color-muted)">
         不会读取您的短信、通讯录或位置
       </footer>
     </main>

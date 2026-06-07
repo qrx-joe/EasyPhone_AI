@@ -153,7 +153,7 @@ export function SpeechRateControl({
       role="radiogroup"
       aria-label="语音播报语速"
     >
-      <p className="text-base text-[--color-muted] mb-2 px-1">念的速度</p>
+      <p className="text-base text-(--color-muted) mb-2 px-1">念的速度</p>
       <div className="grid grid-cols-3 gap-2">
         {SPEECH_RATE_OPTIONS.map((opt) => {
           const selected = opt.tier === tier
@@ -166,8 +166,8 @@ export function SpeechRateControl({
               onClick={() => setTier(opt.tier)}
               className={
                 selected
-                  ? 'min-h-[56px] px-3 py-3 rounded-xl bg-[--color-primary] text-white text-xl font-semibold shadow-sm border-2 border-[--color-primary]'
-                  : 'min-h-[56px] px-3 py-3 rounded-xl bg-white hover:bg-[--color-soft] active:scale-[0.99] transition text-[--color-foreground] text-xl font-medium border-2 border-[--color-border]'
+                  ? 'min-h-[56px] px-3 py-3 rounded-xl bg-(--color-primary) text-white text-xl font-semibold shadow-sm border-2 border-(--color-primary)'
+                  : 'min-h-[56px] px-3 py-3 rounded-xl bg-white hover:bg-(--color-soft) active:scale-[0.99] transition text-(--color-foreground) text-xl font-medium border-2 border-(--color-border)'
               }
             >
               {opt.label}

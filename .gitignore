@@ -52,3 +52,7 @@ next-env.d.ts
 # OpenPrd multi-agent adapters (we don't use Codex/Cursor, keep the dirs only locally)
 .codex/
 .cursor/
+
+# 本地评审/构建产物(不入库)
+_pr1_review.diff
+android-apk/

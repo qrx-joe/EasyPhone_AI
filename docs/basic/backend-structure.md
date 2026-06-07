@@ -38,6 +38,8 @@ EasyPhone_AI MVP **没有独立后端服务**。所有业务逻辑(风险判断�
 
 `@openprd/cli` 本身是开发工具(本项目用 `.openprd/init` 装了),不是给最终用户用的 CLI。
 
+`android-apk/build-apk.ps1` 是开发/发布辅助脚本,只用于生成 Android TWA APK 外壳；它不是终端用户 CLI,也不承载业务逻辑。
+
 **未来**:
 - 如果要做"老人端家长控制"(家人端给老人预置教程),可能需要 CLI 工具
 - 当前不在 MVP 范围
@@ -47,6 +49,8 @@ EasyPhone_AI MVP **没有独立后端服务**。所有业务逻辑(风险判断�
 **当前**:**不适用**。
 
 没有 HTTP / RPC / WebSocket 接口。所有处理都在 Next.js Server Component 内。
+
+Android APK 方案采用 TWA 包装已部署的 HTTPS Web App,不新增 Android 原生 API 接入面,不新增短信、通讯录、定位、无障碍、支付或远程控制权限。
 
 **未来(M5)**:
 - 接 LLM API 做更准的分类/求助卡生成

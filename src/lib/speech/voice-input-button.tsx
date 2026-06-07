@@ -3,7 +3,7 @@
 /**
  * [OPENPRD 文件说明书]
  * ## 核心功能
- * 首页「按住说话」按钮 UI:点一下开始听,识别到 final 后自动跳走,出错时给中文兜底。
+ * 首页「点一下说问题」按钮 UI:点一下开始听,识别到 final 后自动跳走,出错时给中文兜底。
  *
  * ## 输入
  * 无 props;内部调 useSpeechRecognition,onFinal 走 routeToInput 路由。
@@ -26,7 +26,7 @@
  */
 
 /**
- * 首页「按住说话」按钮 —— 真实集成 Web Speech Recognition。
+ * 首页「点一下说问题」按钮 —— 真实集成 Web Speech Recognition。
  *
  * 行为:
  *   - 点一下:开始听,按钮变红色 + 显示实时识别文本
@@ -67,6 +67,13 @@ export function VoiceInputButton() {
     })
 
   const isListening = state === 'listening' || state === 'ending'
+  const isUnavailable = Boolean(errorMessage && !isSupported)
+  const idleLabel = errorMessage
+    ? isUnavailable
+      ? '语音暂时用不了'
+      : '再点一次说问题'
+    : '点一下说问题'
+  const buttonLabel = isListening ? '正在听,点一下停' : idleLabel
 
   return (
     <div className="w-full flex flex-col gap-3">
@@ -75,45 +82,42 @@ export function VoiceInputButton() {
         onClick={isListening ? stop : start}
         className={
           isListening
-            ? 'w-full min-h-[80px] px-6 py-4 rounded-2xl bg-[--color-danger] text-white text-2xl font-semibold flex items-center justify-center gap-3 shadow-md animate-pulse'
-            : 'w-full min-h-[80px] px-6 py-4 rounded-2xl bg-[--color-primary] hover:bg-[--color-primary-hover] active:scale-[0.98] transition text-white text-2xl font-semibold flex items-center justify-center gap-3 shadow-sm'
+            ? 'w-full min-h-[80px] px-6 py-4 rounded-2xl bg-(--color-danger) text-white text-2xl font-semibold flex flex-col items-center justify-center gap-1 shadow-md animate-pulse'
+            : isUnavailable
+              ? 'w-full min-h-[80px] px-6 py-4 rounded-2xl bg-(--color-soft) hover:bg-(--color-soft-hover) active:scale-[0.98] transition text-(--color-foreground) text-2xl font-semibold flex flex-col items-center justify-center gap-1 border-2 border-(--color-border)'
+              : 'w-full min-h-[80px] px-6 py-4 rounded-2xl bg-(--color-primary) hover:bg-(--color-primary-hover) active:scale-[0.98] transition text-white text-2xl font-semibold flex flex-col items-center justify-center gap-1 shadow-sm'
         }
-        aria-label={isListening ? '正在听,点一下停止' : '按住说话提问'}
+        aria-label={isListening ? '正在听,点一下停止' : buttonLabel}
         aria-pressed={isListening}
       >
-        <span aria-hidden className="text-3xl">
-          {isListening ? '🔴' : '🎙'}
-        </span>
-        {isListening ? '正在听...点一下停' : '按住说话'}
+        <span>{buttonLabel}</span>
+        {errorMessage && !isListening && (
+          <span
+            className={
+              isUnavailable
+                ? 'text-base font-medium text-(--color-muted)'
+                : 'text-base font-medium text-white'
+            }
+            role="status"
+          >
+            {errorMessage}
+          </span>
+        )}
       </button>
 
       {/* 实时 transcript 反馈(让老人知道系统听到了什么) */}
       {isListening && (
         <div
-          className="w-full px-5 py-4 rounded-xl bg-white border-2 border-[--color-primary] text-left"
+          className="w-full px-5 py-4 rounded-xl bg-white border-2 border-(--color-primary) text-left"
           aria-live="polite"
         >
-          <p className="text-base text-[--color-muted] mb-1">我听到的是:</p>
-          <p className="text-xl text-[--color-foreground] min-h-[1.5em] break-words">
+          <p className="text-base text-(--color-muted) mb-1">我听到的是:</p>
+          <p className="text-xl text-(--color-foreground) min-h-[1.5em] break-words">
             {transcript || '...'}
           </p>
         </div>
       )}
 
-      {/* 错误提示(3 秒自动消失) */}
-      {errorMessage && (
-        <div
-          className="w-full px-5 py-3 rounded-xl bg-[--color-danger-soft] border border-[--color-danger] text-left"
-          role="alert"
-        >
-          <p className="text-base text-[--color-danger]">{errorMessage}</p>
-          {!isSupported && (
-            <p className="text-sm text-[--color-muted] mt-1">
-              点击下面的「打字告诉我」也可以
-            </p>
-          )}
-        </div>
-      )}
     </div>
   )
 }

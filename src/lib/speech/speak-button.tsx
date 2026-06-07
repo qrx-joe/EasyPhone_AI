@@ -127,8 +127,8 @@ export function SpeakButton({
   const classNameFinal =
     className ??
     (speaking
-      ? 'w-full min-h-[64px] px-6 py-3 rounded-xl bg-[--color-danger] text-white text-xl font-medium shadow-sm'
-      : 'w-full min-h-[64px] px-6 py-3 rounded-xl bg-[--color-soft] hover:bg-[--color-soft-hover] active:scale-[0.99] transition text-[--color-foreground] text-xl font-medium border border-[--color-border]')
+      ? 'w-full min-h-[64px] px-6 py-3 rounded-xl bg-(--color-danger) text-white text-xl font-medium shadow-sm'
+      : 'w-full min-h-[64px] px-6 py-3 rounded-xl bg-(--color-soft) hover:bg-(--color-soft-hover) active:scale-[0.99] transition text-(--color-foreground) text-xl font-medium border border-(--color-border)')
 
   return (
     <button

@@ -85,14 +85,14 @@ function NoTutorialFound({ text }: { text: string }) {
         </h1>
       </header>
 
-      <section className="w-full mb-8 px-6 py-6 rounded-2xl bg-[--color-soft] border border-[--color-border]">
-        <p className="text-base text-[--color-muted] mb-2">您说的是:</p>
-        <p className="text-xl font-medium text-[--color-foreground] break-words">
+      <section className="w-full mb-8 px-6 py-6 rounded-2xl bg-(--color-soft) border border-(--color-border)">
+        <p className="text-base text-(--color-muted) mb-2">您说的是:</p>
+        <p className="text-xl font-medium text-(--color-foreground) break-words">
           「{text}」
         </p>
       </section>
 
-      <section className="w-full mb-8 text-left px-6 py-5 rounded-xl bg-[--color-primary-soft]">
+      <section className="w-full mb-8 text-left px-6 py-5 rounded-xl bg-(--color-primary-soft)">
         <p className="text-lg leading-relaxed">
           我们正在准备更多教程。
           <br />
@@ -104,7 +104,7 @@ function NoTutorialFound({ text }: { text: string }) {
 
       <Link
         href="/"
-        className="w-full text-center min-h-[64px] px-6 py-3 rounded-xl bg-[--color-primary] hover:bg-[--color-primary-hover] text-white text-xl font-semibold flex items-center justify-center"
+        className="w-full text-center min-h-[64px] px-6 py-3 rounded-xl bg-(--color-primary) hover:bg-(--color-primary-hover) text-white text-xl font-semibold flex items-center justify-center"
       >
         返回首页
       </Link>

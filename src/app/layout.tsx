@@ -46,10 +46,9 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="zh-CN" className="h-full antialiased">
-      <body className="min-h-full flex flex-col bg-[--color-background] text-[--color-foreground]">
+      <body className="min-h-full flex flex-col bg-(--color-background) text-(--color-foreground)">
         {children}
       </body>
     </html>
   )
 }
-

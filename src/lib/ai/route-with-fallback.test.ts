@@ -244,6 +244,60 @@ describe('routeWithFallback — abort / 竞态守卫', () => {
 
     assert.deepEqual(router.calls, ['/confirm?text=only'])
   })
+
+  test('signal 被原样转发给 fetchRouteImpl(防御 signal 未传递回归)', async () => {
+    // Finding #1 回归测试:routeWithFallback 必须把 options.signal 透传给 fetchRouteImpl,
+    // 否则默认 fetchRoute 永远拿不到 AbortSignal,网络层不会真取消,in-flight guard 半失效。
+    const router = makeRouterSpy()
+    let capturedSignal: AbortSignal | undefined
+    const fetchRouteImpl: (
+      text: string,
+      signal?: AbortSignal,
+    ) => Promise<RouteDecision> = (text, signal) => {
+      capturedSignal = signal
+      return Promise.resolve({
+        href: `/confirm?text=${encodeURIComponent(text)}`,
+        level: 'low',
+      })
+    }
+    const ctrl = new AbortController()
+
+    await routeWithFallback(router, 'hi', 'home', {
+      signal: ctrl.signal,
+      fetchRouteImpl,
+    })
+
+    // 关键断言:传进来的 signal **就是** options.signal(同一个对象)
+    assert.ok(capturedSignal, 'fetchRouteImpl 必须收到 AbortSignal 参数')
+    assert.equal(capturedSignal, ctrl.signal, 'signal 必须是原对象(非 undefined / 包装后)')
+  })
+
+  test('signal 已 abort → 转发后 fetchRouteImpl 拿到的就是已 abort 的 signal', async () => {
+    // 进一步证明:helper 转发的是同一个 signal 对象,不是拷贝。
+    // 转发后立刻 abort,fetchRouteImpl 内看到的 signal 应当 .aborted === true。
+    const router = makeRouterSpy()
+    let capturedAborted: boolean | undefined
+    const fetchRouteImpl: (
+      text: string,
+      signal?: AbortSignal,
+    ) => Promise<RouteDecision> = (_text, signal) => {
+      capturedAborted = signal?.aborted
+      return Promise.resolve({ href: '/confirm?text=hi', level: 'low' })
+    }
+    const ctrl = new AbortController()
+    // 在调用 helper **前**就先 abort(模拟「连点」时 controller 已 dispose)
+    ctrl.abort()
+
+    await routeWithFallback(router, 'hi', 'home', {
+      signal: ctrl.signal,
+      fetchRouteImpl,
+    })
+
+    // fetchRouteImpl 必须看到 aborted === true;否则说明 helper 没把 signal 传过去
+    assert.equal(capturedAborted, true, 'fetchRouteImpl 应当观察到已 abort 的 signal')
+    // helper 在 await 之后也必须自己再 guard 一次(避免旧路径 push)
+    assert.deepEqual(router.calls, [], 'abort 后不应该 push 任何路径')
+  })
 })
 
 describe('routeWithFallback — 日志标签', () => {

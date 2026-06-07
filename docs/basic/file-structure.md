@@ -39,6 +39,7 @@
 │   ├── 07-risk-keywords-library.md   # 风险关键词库 + 16 个验收用例
 │   ├── 08-sprint-0-decisions.md      # Sprint 0 决策记录
 │   └── basic/                        # OpenPrd 基线文档(本目录)
+├── android-apk/                      # Android APK/TWA 打包隔离目录
 ├── .openprd/                         # OpenPrd 工作区
 ├── .github/workflows/ci.yml          # GitHub Actions CI
 └── package.json                      # pnpm 项目,Node 24+
@@ -50,6 +51,7 @@
 - **src/app/**:Next.js 页面 + 客户端组件。每个目录对应一个路由,server component 读 query,client component 维护 UI state。
 - **src/lib/**:第三方 API 封装(目前只有 speech)。**不**放业务逻辑 —— 业务逻辑归 domain。
 - **docs/**:PRD / 规范 / 决策。**代码改了,docs 也得改**(OpenPrd 理念)。
+- **android-apk/**:Android APK/TWA 打包辅助文件。只包装已部署 Web App,不复制业务逻辑、不新增 Android 权限。
 
 ## 维护规则
 
