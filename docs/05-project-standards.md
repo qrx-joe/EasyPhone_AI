@@ -290,3 +290,171 @@ AI 输出必须是结构化 JSON：
 
 如果发现坏味道，必须先记录，再决定是否优化。
 
+### 8.1 2026-06-08 新增坏味道（M5 + Vercel 部署会话后）
+
+- **冗余（关键词保险丝在 client + server 两处实现）**：`src/domain/risk/classify-risk.ts`（server 权威）和 `src/lib/ai/fetch-route.ts`（client fail-open 兜底，烘焙 130 词进 client bundle）两处实现同样的关键词匹配 + MAX 决策。client 兜底还缺 `/tutorial` 分支，行为可能漂移。**抽 `shared-classifier.ts` 共享模块**消冗余。
+- **数据泥团（7 个 env var 散在 5 个文件）**：`DEEPSEEK_API_KEY` / `MODEL` / `BASE_URL` / `AI_RECHECK_TIMEOUT_MS` / `ENABLE_AI_RISK_RECHECK` / `AI_RATE_LIMIT_PER_10MIN` / `AI_DAILY_BUDGET` 散在 `deepseek-client.ts` / `rate-limit.ts` / `.env.example` / Vercel Dashboard。每次新增字段要在 4-5 处同步。**抽 `config.ts` 收敛**：`getAiConfig()` 一次性读 + 校验 + 注入。
+- **不必要复杂性（5 层 try/catch fail-open 套娃）**：`routeWithAiRecheck` → `recheckLowRisk` → `defaultDeepSeekClient.chat` → `fetch` → `parse`，每层都 `try { ... } catch { 返回 base 决策 }`。**真出 bug 时 5 层全吞，事故追溯 0 信号**。收口到 1 处总开关（`src/lib/ai/safety.ts`），删 4 处冗余 catch。
+- **脆弱性（Vercel build cache 是"假性健康"陷阱）**：`Already up to date` 不代表 install 行为对了，可能吃的是上一次 build 留下的 node_modules。**真出问题时** cache 失效 → 真实 install 行为暴露 → 间歇性 bug。规避：lint:deps 守卫装 buildCommand 前，强制 cold install（`vercel.json` 设 `installCommand`）。
+
+完整记录见 `docs/04-advice.md` 2026-06-08 段。
+
+## 9. Vercel 部署规范
+
+### 9.1 部署目标架构
+
+- Vercel Production = `https://easy-phone-ai.vercel.app`
+- 镜像：Next.js 16 + Node 24 + pnpm 10.28.0
+- Region: iad1（Washington D.C., USA — East）
+
+### 9.2 配置文件（`vercel.json`）
+
+```json
+{
+  "buildCommand": "pnpm run lint:deps && pnpm test && pnpm run build",
+  "installCommand": "pnpm install --frozen-lockfile",
+  "framework": "nextjs"
+}
+```
+
+- `installCommand` 强制 `pnpm install --frozen-lockfile`，**不**用 Vercel 默认的 build cache restore 行为
+- `buildCommand` 前置 `lint:deps` + `test`，任何 install 漂移在 build 阶段就 fail，不让坏部署溜过
+
+### 9.3 包管理器配置（`pnpm-workspace.yaml`）
+
+```yaml
+ignoredBuiltDependencies:
+  - sharp
+  - unrs-resolver
+
+supportedArchitectures:
+  os:    [linux]
+  cpu:   [x64]
+  libc:  [glibc]
+```
+
+- **`supportedArchitectures` 必须只列部署目标架构**。**不要**加 `current`（开发机架构）—— 会导致 pnpm 对 optional 依赖的过滤在跨 host 时非确定，间歇性漏装。
+- 部署目标是 Vercel Linux x64 glibc，本地 dev 装 Windows binding 走 `pnpm dev` 路径不依赖 oxide binding，不影响开发体验。
+
+### 9.4 引擎版本（`package.json`）
+
+```json
+"engines": {
+  "node": ">=20.0.0",
+  "pnpm": ">=10.28.0"
+}
+```
+
+- Vercel 看到 `engines.node` 会按需选 Node 镜像，避免用 Vercel 默认版本（v20.x）跟 Next 16 不兼容
+- Vercel 警告 `>=` 写法会在新 major Node 发布时自动升级。固定用 `>=20.0.0` 是有意的（要 Node 20+，不锁 minor）。
+
+### 9.5 可选依赖守卫（`scripts/verify-optional-deps.mjs`）
+
+部署 / CI / 本地 build **之前**跑：
+
+```bash
+pnpm run lint:deps
+```
+
+脚本检查 `node_modules/.pnpm/@tailwindcss+oxide-linux-x64-gnu@4.3.0` 存在，否则 exit 1。这是 P0 修复的回归守卫——`@tailwindcss/oxide` 在 Tailwind v4 PostCSS 编译时被动态 require 它的 native binding，Vercel 是 linux x64 glibc，所以**必须**装 `linux-x64-gnu` variant。
+
+### 9.6 CI 门禁
+
+`.github/workflows/ci.yml` 必跑：
+
+```yaml
+- pnpm install --frozen-lockfile
+- pnpm run lint:deps
+- pnpm test
+- pnpm build
+- pnpm start  # 生产 server
+- sleep 5
+- node scripts/smoke.mjs  # 5 demo URL HTTP 200
+- npx @openprd/cli standards . --verify
+- npx @openprd/cli quality . --verify  # MVP 阶段 continue-on-error
+- npx @openprd/cli doctor .
+```
+
+任何 step fail = merge 阻断。
+
+## 10. AI 兜底真接验证
+
+### 10.1 形态 ① 落地说明
+
+按 M5 设计，AI 兜底**只在 `base.level === 'low'` 时跑**（`src/lib/ai/route-with-ai.ts:68`）。逻辑链：
+
+```
+用户输入 → buildRouteForInput(text) [关键词保险丝 + tutorial 匹配]
+  ├─ base.level > low  → 直接返回 base 决策（不走 AI）
+  └─ base.level === low
+      → recheckLowRisk(trimmed, base.classification, DeepSeek client)
+      → AI decision: 'keep' / 'escalate'
+      ├─ 'keep'      → 返回 base 决策（base 跳 /tutorial 或 /confirm）
+      └─ 'escalate'  → 覆盖为 /risk-alert?source=ai&reason=AI+兜底:...
+```
+
+### 10.2 真接 vs 升级
+
+**"AI 兜底真接"** = AI recheck 真的被调用，Vercel 容器真的调到了 DeepSeek API。
+
+| 现象 | 含义 |
+|---|---|
+| URL 跳 `/risk-alert?...&source=ai&...` | AI 真接 + escalate（升级到风险页）|
+| URL 跳 `/tutorial?text=...` | AI 真接 + keep（**不是** fail-open，是 base 决策生效）|
+| URL 跳 `/confirm?text=...` | AI 没接，client 兜底（关键词没命中，tutorial 也没匹配）|
+| URL 跳 `/risk-alert?level=critical&keywords=...` | 关键词保险丝先命中，**不走** AI |
+
+**关键纠正**："没 source=ai ≠ 没接"。AI keep 也是接。
+
+### 10.3 4 步验证方法
+
+按从弱到强的证据链：
+
+1. **DevTools Network 标签**（用户侧，最直接）
+   - 浏览器 F12 → Network 标签 → 清空旧请求 → 输入测试句 → 提交
+   - 找 `/api/route` 那行 → Response 标签
+   - 期望 JSON：`{"href":"/tutorial?...","level":"low"}` 或 `{"href":"/risk-alert?...&source=ai&...","level":"high"}`
+   - 看到 `href` 是 `/tutorial` 或 `/risk-alert?source=ai`，**不是** `/confirm` → AI recheck 跑过
+
+2. **Deployment-time smoke test 日志**（CI 侧，间接）
+   - Vercel 部署时 `vercel inspect <url> --logs` 拉 build 日志
+   - 搜 `[ai-recheck] { ... source: "ai", decision: "escalate", ... }`
+   - smoke test 跑过 `source: "ai"` + `decision: "escalate"` → 部署版本代码路径走通
+
+3. **Production runtime 日志**（运维侧，权威但延迟）
+   - `vercel logs <prod-url> --environment production --since 30m --no-follow`
+   - 找 `λ POST /api/route 200` + 紧随其后的 `[ai-recheck] { ... }`
+   - ⚠️ Vercel 团队 plan 上 production 日志有延迟（数分钟到数小时），hobby plan 限制更严
+
+4. **构造测试句**（设计侧，必备）
+   - 避开所有 130 个关键词（base.level === low 才能进 AI recheck）
+   - 语义上高风险（LLM 应当嗅出风险）
+   - 示例：
+     - ❌ "我刚下载了一个新 APP，要填身份证号才能用"（命中"身份证号" critical，不进 AI）
+     - ✅ "有人加我微信说他公司上市了，要带我一起发大财"（关键词不命中，AI 嗅"带你发财"=典型诈骗）
+     - ✅ "我刚认识一个人说他是我失散多年的儿子，要我打点钱给他做路费"（关键词不命中，AI 嗅"失散儿子+打钱"=冒充亲属）
+   - 注意：AI keep 是正常路径，升级是少数情况
+
+### 10.4 fail-open 哲学
+
+**业务规则**：所有异常 = 关键词保险丝兜底（`src/lib/ai/route-with-ai.ts:21`）。
+
+```ts
+// 任何步骤异常 → 返回 buildRouteForInput() 原结果
+// 关键词保险丝是主防线,AI 是辅助
+```
+
+**已知局限**：
+- LLM 偶尔漏判（"失散多年的儿子+打钱"AI 觉得是低风险）—— 关键词保险丝是底线
+- AI 调慢会卡住请求（2 秒超时）—— fail-open 到关键词
+- 多实例部署（Vercel 多 region / Next.js 多 worker）rate limit 各算各的—— 严格防滥用要换 Redis
+
+### 10.5 已知非确定性
+
+本次会话发现：
+- Vercel build cache restore 会让 `Already up to date` 不可信——必须 `--force --no-wait` 验证
+- LLM 决策本身有非确定（temperature 0.1 + response_format: json_object 锁低温但非绝对零）
+- 关键词匹配有边界（"我是你儿子"命中，"他说他是我儿子"不命中）
+
+**对策**：lint:deps 守卫 + 扩关键词库（按 docs/07 §11 三道闸）+ 持续老人测试。
+
