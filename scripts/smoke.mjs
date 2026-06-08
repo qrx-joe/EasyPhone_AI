@@ -132,6 +132,28 @@ const CHECKS = [
     followRedirect: true,
   },
 
+  // ====== deep link 守卫(2026-06-08):高风险 deep link 不能渲染 /tutorial 或 /confirm ======
+  // 漏洞:手拼 /tutorial?text=微信没有声音了，对方让我输验证码 会渲染 wechat-no-sound
+  //      教程页,因为原本 /tutorial 接受 searchParams.text 但没走 buildRouteForInput。
+  // 修复:guardGuidanceRoute 拦截高风险 deep link,redirect 到 /risk-alert。
+  // 验收:高风险 deep link 跟着 redirect 后,最终响应是 /risk-alert 内容(不是教程页)。
+  {
+    url: '/tutorial?text=' + encodeURIComponent('微信没有声音了，对方让我输验证码'),
+    expectStatus: 200,
+    expectAny: ['先别操作', '验证码', '停'],
+    // 负面断言:wechat-no-sound 教程关键词不能出现(防 deep link 漏洞回归)
+    expectNone: ['让微信声音回来', '打开微信', '好了,下一步'],
+    followRedirect: true,
+  },
+  {
+    url: '/confirm?text=' + encodeURIComponent('对方让我开屏幕共享'),
+    expectStatus: 200,
+    expectAny: ['先别操作', '停', '让我帮您'],
+    // 负面断言:confirm 页文案不能出现(防高风险 deep link 渲染 confirm)
+    expectNone: ['您是不是想解决', '请确认一下'],
+    followRedirect: true,
+  },
+
   // ====== M5 AI 兜底层 /api/route 端到端契约 ======
   // LOW 输入 → /confirm(AI 嗅 keep 或 fail-open,关键词保险丝定 low)
   {

@@ -10,7 +10,8 @@
  * 静态页面 + 内嵌 <ConfirmActions>;text 为空时 redirect('/')。
  *
  * ## 定位
- * 中间路由 —— 只服务低/中风险分流,不接高风险(高风险已在首页走 /risk-alert)。
+ * 中间路由 —— 服务低/中风险分流。**手拼 URL 的高风险输入由 guardGuidanceRoute
+ * 拦截,不在本页渲染**;详见 src/domain/routing/deep-link-guard.ts。
  * 服务端做空 text 兜底,客户端只装交互按钮。
  *
  * ## 依赖
@@ -23,8 +24,9 @@
 /**
  * 确认页 — 低风险路径的「问对了吗」步骤。
  *
- * 输入路径:首页 classifyRiskByRules 判定 low/medium 后跳到这里。
- * 高风险输入永远不会到这里(首页直接跳 /risk-alert)。
+ * 输入路径:首页 classifyRiskByRules 判定 low/medium 后跳到这里;
+ * 或手拼 /confirm?text=... 经 guardGuidanceRoute 过滤后到达。
+ * 高风险 deep link 输入会由 guard 拦截,不会渲染本页。
  *
  * Server component:读 query 后渲染,交互按钮拆到 ConfirmActions(client)。
  * 这样:
@@ -33,6 +35,8 @@
  */
 
 import { redirect } from 'next/navigation'
+
+import { guardGuidanceRoute } from '@/domain/routing/deep-link-guard'
 
 import { ConfirmActions } from './confirm-actions'
 
@@ -45,6 +49,12 @@ export default async function ConfirmPage({
   const cleanText = (text ?? '').trim()
   if (!cleanText) {
     redirect('/')
+  }
+
+  // Deep link 防御:手拼 URL 绕过首页时,先过 guard 收敛到 buildRouteForInput
+  const guard = guardGuidanceRoute(cleanText)
+  if (guard) {
+    redirect(guard)
   }
 
   return (

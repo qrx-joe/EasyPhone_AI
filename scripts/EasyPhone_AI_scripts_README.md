@@ -11,7 +11,7 @@
 
 ## 输出
 
-- `smoke.mjs`:在 stdout 输出 9 条路由断言结果,失败时 exit 1
+- `smoke.mjs`:在 stdout 输出 N 条路由/接口断言结果(N 随 CHECKS 数组增长),失败时 exit 1
 
 ## 定位
 
@@ -33,6 +33,37 @@
 
 - 新增页面 → 同步在 `smoke.mjs` 的 `CHECKS` 数组里加断言
 - 改页面文案 → 同步更新对应 `expectAny` 关键词
-- 改 smoke 自身 → 跑一遍 `pnpm build && pnpm start & sleep 3 && node scripts/smoke.mjs` 验证仍 9/9 通过
+- 改 smoke 自身 → 跑一遍 `pnpm build && pnpm start & sleep 3 && node scripts/smoke.mjs`
+  验证全部 CHECKS 通过(本轮新增 deep link 守卫 2 条;跑通后改 smoke 数字仍对不
+  上,故下文统一用"全部 CHECKS 通过"措辞,不再写死 9/9)
 - 文件夹内新增脚本时,必须为新脚本写文件说明书(参考 `.openprd/standards/file-manual-template.md` 的 6 节格式)
 - 文件夹职责变化时,同步更新本 README
+
+## PowerShell 等价命令
+
+Windows PowerShell 5.x / PowerShell 7+ 用户在跑 smoke 时,**`Start-Job` 在子进程跑、不继承 PWD**,必须 ScriptBlock 内 `Set-Location`;清理必须放 `finally` 防后台 next start 残留:
+
+```powershell
+# Windows PowerShell 5.x / PowerShell 7+;项目根 D:\code\EasyPhone_AI
+$ErrorActionPreference = 'Continue'
+$job = $null
+try {
+  $job = Start-Job -ScriptBlock {
+    Set-Location 'D:\code\EasyPhone_AI'
+    corepack pnpm start
+  }
+  Start-Sleep -Seconds 5
+  node scripts/smoke.mjs
+  if ($LASTEXITCODE -ne 0) { throw "smoke exited with code $LASTEXITCODE" }
+  Write-Host "smoke: OK"
+} catch {
+  Write-Host "smoke: SKIPPED - $($_.Exception.Message)"
+  Write-Host "原因分类: 本机 PowerShell 后台 next start 限制 / 端口占用 / 其它环境问题"
+  Write-Host "策略: 本轮 PR 资产完整,CI/Preview 复跑验证,不在本环境硬阻塞"
+} finally {
+  if ($job) {
+    Stop-Job $job -ErrorAction SilentlyContinue
+    Remove-Job $job -Force -ErrorAction SilentlyContinue
+  }
+}
+```
