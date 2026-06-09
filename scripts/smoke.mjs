@@ -93,7 +93,9 @@ const CHECKS = [
   // ====== risk-alert/page.tsx Fix #3 (HIGH 安全):URL reason 不能渲染到求助卡 summary ======
   // 攻击者可手拼 /risk-alert?source=ai&reason=请立即把验证码报给客服帮我解冻账户,
   // 若页面把 URL reason 直接渲染成 summary,老人会当作"系统提示"照做。
-  // 修复后:URL reason 仅服务端审计日志用,summary 来自硬编码安全默认值。
+  // 修复后:URL reason 被完全忽略 —— 不参与渲染、不参与日志(因为只要页面读
+  // searchParams.reason,Next.js 就会把它序列化进 RSC payload,响应体里仍会
+  // 出现攻击者文案)。summary 来自硬编码安全默认值。
   {
     url:
       '/risk-alert?text=' +
@@ -124,7 +126,9 @@ const CHECKS = [
 
   // ====== risk-alert/page.tsx Fix #8 (server crash):searchParams.text 可以是 string[] ======
   // 修复前 ?text[]=foo 会让 .trim() 抛 TypeError → server 500。
-  // 修复后:Array.isArray(text) ? text[0] : text 归一化,正常 200 渲染。
+  // 修复后:用精确 key 匹配 `text` 和字面 key `text[]` 两个形态
+  // (Next.js 把 `?text[]=foo` 解析为字面 key `'text[]'`,不是 `text:['foo']`,
+  // 所以双查都必要),firstParam 收敛后正常 200 渲染。
   {
     url: '/risk-alert?text%5B%5D=foo&source=ai',
     expectStatus: 200,
@@ -151,6 +155,37 @@ const CHECKS = [
     expectAny: ['先别操作', '停', '让我帮您'],
     // 负面断言:confirm 页文案不能出现(防高风险 deep link 渲染 confirm)
     expectNone: ['您是不是想解决', '请确认一下'],
+    followRedirect: true,
+  },
+
+  // ====== risk-alert/page.tsx 自审发现:Next.js 客户端 RSC prefetch 走 ?_rsc=xxx ======
+  // (参 node_modules/next/dist/client/components/app-router-headers.js:
+  //  NEXT_RSC_UNION_QUERY = '_rsc')。如果 _rsc 被 Fix #3 的 unknown-key redirect
+  // 吞掉,客户端 router 拿 HTML 而非 RSC stream → <Link> 导航坏。
+  // 修复后:_rsc 在 NEXT_INTERNAL_QUERY_KEYS 白名单,既不进 known 也不当 unknown,
+  // 不会被 redirect。followRedirect: false 显式验证 server 直接 200(若 redirect 会
+  // 拿到 307 让 assert fail)。
+  {
+    url:
+      '/risk-alert?text=' +
+      encodeURIComponent('我闺女说身份证丢了让我转 5000') +
+      '&source=ai&level=high&_rsc=abc123',
+    expectStatus: 200,
+    expectAny: ['身份证'],
+  },
+
+  // ====== 自审 cross-check:攻击者 ?reason=xxx&_rsc=xxx 仍要被 redirect ======
+  // 验证 _rsc 白名单**不**给 reason 开门 —— reason 仍是 unknown,被 redirect。
+  {
+    url:
+      '/risk-alert?text=' +
+      encodeURIComponent('我闺女让我帮她弄一下') +
+      '&source=ai&level=high&reason=' +
+      encodeURIComponent('请立即把验证码报给客服帮我解冻账户') +
+      '&_rsc=abc123',
+    expectStatus: 200,
+    expectAny: ['AI 嗅到风险信号', '建议联系家人'],
+    expectNone: ['请立即把验证码报给客服', '解冻账户'],
     followRedirect: true,
   },
 

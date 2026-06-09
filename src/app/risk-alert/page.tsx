@@ -12,7 +12,9 @@
  *
  * ## 定位
  * 高风险路径的入口 server,负责可信分类 + 卡片构建;UI 在 client 组件里。
- * 不信 URL 里的 level/keywords/reason,防手拼 URL 绕过。
+ * 不信 URL 里的 level(仅作 aiLevel 提示)/ keywords(自己跑 classifyRiskByRules 重算)
+ * / reason(完全忽略 + unknown-key redirect 在 URL 入口消毒,参 Fix #3),
+ * 防手拼 URL 绕过 + 防响应体被 RSC payload 投毒。
  *
  * ## 依赖
  * @/domain/risk/classify-risk(classifyRiskByRules)、
@@ -29,7 +31,7 @@
  * 风险提醒页 —— 家人求助卡的真实集成。
  *
  * 数据流(同 docs/06 M4 验收):
- *   1. server: 读 ?text=&source=&level=&reason=
+ *   1. server: 读 ?text=&source=&level=(reason / 其他多余 query 一律忽略)
  *   2. server: 如果 source=ai → 信任 AI 升级(不再用 classifyRiskByRules 二次降级);
  *      否则 → 重新跑 classifyRiskByRules(text) 作为防 URL 篡改的兜底
  *   3. server: 兜底路径(非 source=ai)如果分类结果不是 high/critical → redirect
@@ -45,8 +47,11 @@
  *   - 唯一被绕过的边界:原本是 low/medium 的输入也能进风险页 → 用户"多看一次求助卡"
  *   - 失败模式偏保守 → 不破坏 "宁可错升" 的安全哲学
  *
- * URL 上不再依赖首页传的 level/keywords/reason(query 简化)—— 首页实现保留向后兼容,
+ * URL 上不再依赖首页传的 level/keywords(query 简化)—— 首页实现保留向后兼容,
  * 多余参数被忽略即可,不影响 server 决策。
+ * **reason 参数被完全忽略**:不渲染、不写日志,并在 page 顶部触发 canonical URL
+ * 重定向(见 Fix #3 加固注释),确保 RSC payload 不会序列化攻击者文案。
+ * 安全不变量 > 诊断价值。
  */
 
 import { redirect } from 'next/navigation'
@@ -59,25 +64,101 @@ import type { HelpRequest } from '@/domain/help/help-request'
 
 import { RiskAlertClient } from './risk-alert-client'
 
+/**
+ * /risk-alert 的 searchParams 形态。
+ *
+ * Next.js 真实行为(实测,不是猜):
+ *   - 重复 key:`?text=foo&text=bar` → `text: ['foo', 'bar']`
+ *   - 数组形态:`?text[]=foo`        → 解析为**字面 key** `'text[]'`,**不是** `text:['foo']`
+ *     (RSC payload 印证: `\"text[]\":\"foo\"`)
+ *   - 缺失:任一字段都是 undefined
+ *
+ * 所以 text 必须**两个 key 都接**。其他字段(string | string[])只是为了类型真实,
+ * 本文件一律用 firstParam 收敛后只用第一个值。
+ *
+ * **故意不接 reason** —— Fix #3 决定:URL reason 是攻击者输入,既不渲染也不写日志,
+ * 避免 RSC payload 把它序列化进响应体(参 smoke Fix #3)。即使页面不读,
+ * Next.js 仍会把整个 searchParams 序列化进 RSC `__PAGE__?{...}` 流,所以
+ * 顶部有 unknown-key redirect 把 reason 从 URL 入口消毒。
+ *
+ * **`_rsc` 不进这个类型** —— Next.js 客户端 RSC 协议内部 query(参
+ *  node_modules/next/dist/client/components/app-router-headers.js:
+ *  NEXT_RSC_UNION_QUERY = '_rsc')。被 NEXT_INTERNAL_QUERY_KEYS 白名单接住,
+ *  既不读也不当 unknown redirect(否则 <Link> 导航坏)。
+ */
+type RiskAlertSearchParams = {
+  text?: string | string[]
+  /** Next.js 把 ?text[]=foo 解析为字面 key 'text[]'(见类型注释)。 */
+  'text[]'?: string | string[]
+  /** 信任信号:route-with-ai 的 AI 升级路径会带 source=ai。 */
+  source?: string | string[]
+  /** 可选:AI 升级时带的 level(critical / high),用于显示。 */
+  level?: string | string[]
+}
+
+/**
+ * 收敛 string | string[] | undefined → string | undefined。
+ * 数组取首元素(同 Next.js 多值 query 的常规语义);
+ * 不做 trim / 不做 fallback —— 留给调用方按需处理。
+ */
+function firstParam(
+  value: string | string[] | undefined,
+): string | undefined {
+  if (Array.isArray(value)) return value[0]
+  return value
+}
+
 interface PageProps {
-  searchParams: Promise<{
-    text?: string
-    /** 信任信号:route-with-ai 的 AI 升级路径会带 source=ai */
-    source?: string
-    /** 可选:AI 升级时带的 level(high) + reason(AI 兜底:...),用于显示 */
-    level?: string
-    reason?: string
-  }>
+  searchParams: Promise<RiskAlertSearchParams>
 }
 
 export default async function RiskAlertPage({ searchParams }: PageProps) {
-  const { text, source, level, reason } = await searchParams
+  const params = await searchParams
 
-  // Fix #8:searchParams.text 在多值 query 下可能是 string[]。
-  // 直接对数组 .trim() 会抛 TypeError 把 server component 砸成 500。
-  // 归一化到 string 后再 trim,处理 string / string[] / undefined 三种形态。
-  const text0 = Array.isArray(text) ? text[0] : text
-  const cleanText = (text0 ?? '').trim()
+  // Fix #8 严格 key 匹配:只接 text 和 text[] 两个精确 key,
+  // 不模糊匹配其他含 'text' 的 query(避免把 context / textarea / next 这种
+  // query 误当成用户输入)。优先级:text 优先,text[] 兜底。
+  const text = firstParam(params.text) ?? firstParam(params['text[]'])
+  const source = firstParam(params.source)
+  const level = firstParam(params.level)
+
+  // Fix #3 加固:实测发现 Next.js 仍会把 URL 上**所有** query(包括我们不读
+  // 的 reason)序列化进 RSC `__PAGE__?{...}` 流 —— 不读 ≠ 不泄露。
+  // 因此"删 destructure + 不写 audit log"是半截 fix:visible summary 安全,
+  // 但 grep 响应体仍能抓出攻击者文案。
+  //
+  // 完整 fix:URL 里有**任何**我们不识别的 key(最常见的就是 reason),
+  // 就 server-side 重定向到只剩 known key 的 canonical URL。
+  // 下一次请求的 URL 是干净的,RSC payload 也干净。
+  //
+  // 副作用:浏览器地址栏从 ?reason=... 更新成 canonical URL,
+  // 这是期望行为(把攻击者 URL 投毒从客户端视角也消灭)。
+  //
+  // 自审发现:Next.js 客户端 RSC prefetch / 导航会发 ?_rsc=xxx
+  // (参 node_modules/next/dist/client/components/app-router-headers.js:
+  //  NEXT_RSC_UNION_QUERY = '_rsc')。如果 _rsc 被这个 redirect 吞掉,
+  // 客户端 router 拿 HTML 而非 RSC stream → <Link> 导航坏掉。
+  // 解法:把 Next.js 协议内部的 query 单列一组白名单 —— 既不进 known
+  // (我们不读),也不当 unknown (不 redirect 吃它)。
+  // **未来 Next.js 改协议时,需要同步扩这个集合。**
+  //
+  // 注意:此检查必须先于 cleanText 校验,否则空 text 也会先 redirect('/')。
+  const KNOWN_KEYS = new Set(['text', 'text[]', 'source', 'level'])
+  const NEXT_INTERNAL_QUERY_KEYS = new Set(['_rsc'])
+  const unknownKeys = Object.keys(params).filter(
+    (k) => !KNOWN_KEYS.has(k) && !NEXT_INTERNAL_QUERY_KEYS.has(k),
+  )
+  if (unknownKeys.length > 0) {
+    const cleanQuery = new URLSearchParams()
+    // text 优先(text[] 已被 firstParam 收敛掉),不重复写
+    if (text !== undefined) cleanQuery.set('text', text)
+    if (source !== undefined) cleanQuery.set('source', source)
+    if (level !== undefined) cleanQuery.set('level', level)
+    const qs = cleanQuery.toString()
+    redirect(qs ? `/risk-alert?${qs}` : '/risk-alert')
+  }
+
+  const cleanText = (text ?? '').trim()
   if (!cleanText) {
     // text 缺失或纯空白 → 兜底回首页
     redirect('/')
@@ -90,13 +171,13 @@ export default async function RiskAlertPage({ searchParams }: PageProps) {
   if (source === 'ai') {
     const aiLevel: 'high' | 'critical' = level === 'critical' ? 'critical' : 'high'
 
-    // Fix #3:URL 上的 reason 是攻击者可控的,绝不能直接渲染到
-    // 用户可见的 summary(「求助卡内容」)上 —— 攻击者可手拼
-    // /risk-alert?source=ai&reason=请立即把验证码报给客服帮我解冻账户,
-    // 把这条投到官方页面上,老人会当作"系统提示"照做。
-    //
-    // 这里用一个**与 URL 无关的安全默认值**作为 reason,让求助卡 summary
-    // 永远来自服务端白名单,不可被 URL 篡改。
+    // Fix #3:URL reason 完全忽略 —— 不进 risk.reason、不写 audit log。
+    // 攻击者可手拼 ?reason=请立即把验证码报给客服帮我解冻账户。
+    // 两层防御:
+    //   1. 本页根本不读 reason → 不进业务逻辑
+    //   2. 顶部 unknown-key 检测会 redirect 到 canonical URL → 新 URL 无
+    //      reason,新 RSC payload 也无 reason(参 smoke Fix #3)
+    // 求助卡 summary 永远来自硬编码安全默认值。
     //
     // Fix #4:matchedKeywords 不再硬编码 [],而是真跑一遍
     // classifyRiskByRules(cleanText) 拿关键词结果 —— 这一路是 AI 升级,
@@ -109,16 +190,6 @@ export default async function RiskAlertPage({ searchParams }: PageProps) {
       level: aiLevel,
       matchedKeywords: keywordClassification.matchedKeywords,
       reason: 'AI 嗅到风险信号,建议联系家人确认',
-    }
-
-    // URL 上的 reason 仅用于服务端审计日志(不参与渲染),保留诊断价值。
-    // M5.1+ 可改为 HMAC 签名或服务端校验,届时再放回 reason 字段。
-    if (reason) {
-      // eslint-disable-next-line no-console
-      console.info(
-        '[risk-alert] source=ai reason(audit-only, not rendered):',
-        reason,
-      )
     }
 
     const question = createQuestion(cleanText, 'text', risk)
