@@ -12,7 +12,8 @@
  *
  * ## 定位
  * 教程路径的 server 入口,只做匹配与兜底;分步交互在 client 组件。
- * 不做风险过滤 —— 高风险应已在前置路由被分流到 /risk-alert。
+ * 高风险 deep link 输入由 guardGuidanceRoute 拦截,不在本页渲染;
+ * 详见 src/domain/routing/deep-link-guard.ts。
  *
  * ## 依赖
  * next/navigation(redirect)、next/link、@/domain/tutorial/tutorial(findTutorial)、
@@ -38,15 +39,15 @@
  *   - server 还可以做"text 兜底 redirect"防御(/confirm 同款)
  *
  * 安全注意:
- *   - 高风险问题已经在 /confirm 那层被分流到 /risk-alert,理论上不会进这里
- *   - findTutorial 不做风险过滤,本页面用 isSafeForGuidance() 二次防御
- *     (即使有人手动拼 URL 绕过首页,也不会展示高风险教程)
+ *   - findTutorial 不做风险过滤;手拼 URL 的高风险输入由 guardGuidanceRoute 拦截
+ *   - 即使有人手动拼 URL 绕过首页,也不会展示高风险教程(收敛到 buildRouteForInput)
  */
 
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 
 import { findTutorial } from '@/domain/tutorial/tutorial'
+import { guardGuidanceRoute } from '@/domain/routing/deep-link-guard'
 import { TutorialClient } from './tutorial-client'
 
 interface PageProps {
@@ -59,6 +60,12 @@ export default async function TutorialPage({ searchParams }: PageProps) {
   if (!cleanText) {
     // text 缺失或纯空白 → 兜底回首页(避免空教程页让老人困惑)
     redirect('/')
+  }
+
+  // Deep link 防御:手拼 URL 绕过首页时,先过 guard 收敛到 buildRouteForInput
+  const guard = guardGuidanceRoute(cleanText)
+  if (guard) {
+    redirect(guard)
   }
 
   const tutorial = findTutorial(cleanText)

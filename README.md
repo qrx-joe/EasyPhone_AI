@@ -125,7 +125,7 @@ PR 改这些代码时务必保留：
 | 门禁 | 状态 | 说明 |
 |---|---|---|
 | `standards --verify` | ✅ 通过 | 34/34 文件说明书 + 13/13 文件夹 README + 6/6 docs/basic/ baseline |
-| `smoke`（quality 子门禁） | ✅ 通过 | `scripts/smoke.mjs` 测 5 个关键路由, CI 必跑 |
+| `smoke`（quality 子门禁） | ✅ 通过 | `scripts/smoke.mjs` 测关键路由与 API, CI 必跑 |
 | `feature-coverage`（quality 子门禁） | ✅ 通过 | 80+ 单元测试 + 1 个 M5 work unit |
 | `business-guardrails`（quality 子门禁） | ⚠️ needs-attention | MVP 阶段未接 LLM, 没运行时成本/滥用数据. 见 [.openprd/quality/evidence/business-guardrails.md](.openprd/quality/evidence/business-guardrails.md) |
 | `doctor` | ✅ 通过 | OpenPrd 自身环境检查 |
