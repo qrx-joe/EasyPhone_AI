@@ -112,9 +112,9 @@
 | `src/domain/routing/deep-link-guard.wiring.test.ts` | 新建 ~80 行 | 新增 |
 | `src/app/confirm/page.tsx` | 3 处 diff | 修改 |
 | `src/app/tutorial/page.tsx` | 4 处 diff | 修改 |
-| `src/domain/routing/EasyPhone_AI_routing_README.md` | 6 处 diff | 修改 |
+| `src/domain/routing/easy-phone-ai_routing_README.md` | 6 处 diff | 修改 |
 | `scripts/smoke.mjs` | 追加 2 case | 修改 |
-| `scripts/EasyPhone_AI_scripts_README.md` | 3 处 diff | 修改 |
+| `scripts/easy-phone-ai_scripts_README.md` | 3 处 diff | 修改 |
 | `README.md` | 1 处最小改 line 128 | 修改 |
 | `docs/08-sprint-0-decisions.md` | 9 处 diff | 修改 |
 
@@ -497,7 +497,7 @@ describe('deep link guard — 页面 wiring 回归(防"有 helper 但页面没�
 + *   - 即使有人手动拼 URL 绕过首页,也不会展示高风险教程(收敛到 buildRouteForInput)
 ```
 
-### 4.6 修改 `src/domain/routing/EasyPhone_AI_routing_README.md`
+### 4.6 修改 `src/domain/routing/easy-phone-ai_routing_README.md`
 
 **6 处 diff**：
 
@@ -563,7 +563,7 @@ describe('deep link guard — 页面 wiring 回归(防"有 helper 但页面没�
   },
 ```
 
-### 4.8 修改 `scripts/EasyPhone_AI_scripts_README.md`
+### 4.8 修改 `scripts/easy-phone-ai_scripts_README.md`
 
 **3 处 diff**：
 
@@ -737,9 +737,9 @@ npx @openprd/cli dev-check . `
   src/domain/routing/deep-link-guard.wiring.test.ts `
   src/app/confirm/page.tsx `
   src/app/tutorial/page.tsx `
-  src/domain/routing/EasyPhone_AI_routing_README.md `
+  src/domain/routing/easy-phone-ai_routing_README.md `
   scripts/smoke.mjs `
-  scripts/EasyPhone_AI_scripts_README.md `
+  scripts/easy-phone-ai_scripts_README.md `
   README.md `
   docs/08-sprint-0-decisions.md
 
@@ -808,9 +808,9 @@ commit 2: feat(routing): wire deep link guard into /tutorial and /confirm pages
   - 新增 src/domain/routing/deep-link-guard.wiring.test.ts
   - 改 src/app/confirm/page.tsx
   - 改 src/app/tutorial/page.tsx
-  - 改 src/domain/routing/EasyPhone_AI_routing_README.md
+  - 改 src/domain/routing/easy-phone-ai_routing_README.md
   - 改 scripts/smoke.mjs
-  - 改 scripts/EasyPhone_AI_scripts_README.md
+  - 改 scripts/easy-phone-ai_scripts_README.md
   - 改 README.md
 
 commit 3: docs(08): mark Sprint 0 decision drift (§1.2 / §1.4)
@@ -835,9 +835,9 @@ step 1:  Read 完整文件（写代码前 Read 规则）:
          - src/domain/risk/classify-risk.ts
          - src/app/confirm/page.tsx
          - src/app/tutorial/page.tsx
-         - src/domain/routing/EasyPhone_AI_routing_README.md
+         - src/domain/routing/easy-phone-ai_routing_README.md
          - scripts/smoke.mjs
-         - scripts/EasyPhone_AI_scripts_README.md
+         - scripts/easy-phone-ai_scripts_README.md
          - README.md
          - docs/08-sprint-0-decisions.md
          （之前已读关键文件，但落地前要再过一遍）
@@ -867,13 +867,13 @@ step 6:  改 src/app/tutorial/page.tsx
          - 删 isSafeForGuidance 谎言
          - 路径注释同上
 
-step 7:  改 src/domain/routing/EasyPhone_AI_routing_README.md
+step 7:  改 src/domain/routing/easy-phone-ai_routing_README.md
          - 6 处 diff（增 deep-link-guard 段、调用方、依赖、维护规则、不变量）
 
 step 8:  改 scripts/smoke.mjs
          - 追加 2 case 真实 URL 验收
 
-step 9:  改 scripts/EasyPhone_AI_scripts_README.md
+step 9:  改 scripts/easy-phone-ai_scripts_README.md
          - 3 处 diff（"9/9" → "全部 CHECKS 通过"）
          - 追加 PowerShell 等价命令段
 
