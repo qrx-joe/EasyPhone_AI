@@ -21,12 +21,15 @@
 - 用户 clone 后跑 `pnpm install` → Node 24 + pnpm 10 拉依赖
 - 编辑器(TS 严格模式 / 任何 IDE)
 - CI 跑 `pnpm test` + `pnpm build`
+- 评审/外部读者看 README 4 个新章节(完整工作流 / 使用工具 / 核心产出 / 核心 prompt)
 
 ## 输出
 
-- 部署到 Vercel / Cloudflare Pages 的 Next.js 16 Web App
+- 部署到 Vercel / Cloudflare Pages 的 Next.js 16 Web App(线上 `https://easy-phone-ai.vercel.app`)
 - `localhost:3000` 开发服务器
 - OpenPrd 工作区状态(`openprd status .` 看门禁)
+- 5 个 demo 直链(`/tutorial/demo?case=wechat|font` + `/risk-alert/demo?case=medical-sms|public-security|screen-share`)
+- MIT License(仓库根 `LICENSE`)
 
 ## 定位
 
