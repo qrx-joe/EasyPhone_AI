@@ -458,3 +458,58 @@ pnpm run lint:deps
 
 **对策**：lint:deps 守卫 + 扩关键词库（按 docs/07 §11 三道闸）+ 持续老人测试。
 
+## 11. Next.js 协议内部 query 白名单模式（2026-06-09 新增）
+
+> 任何在 server component 入口"按 known key 集合消毒" / "redirect 未知 key"的安全 fix，
+> **必须**同时识别框架/协议内部 query，单列白名单，不能跟业务 known key 混在一起，也不能当 unknown 重定向掉。
+
+### 11.1 为什么需要这层白名单
+
+Next.js 客户端 RSC prefetch / `router.push` / `<Link>` 走 React Server Components 协议，
+会自动在 URL 上加内部 query。当前已知至少：
+
+- `_rsc`（`node_modules/next/dist/client/components/app-router-headers.js` 中 `NEXT_RSC_UNION_QUERY = '_rsc'`）
+
+未来 Next.js 改协议时可能加新的内部 query，**必须**实测 + 翻源码确认。
+
+### 11.2 实现模板
+
+```ts
+// page.tsx 入口
+const KNOWN_KEYS = new Set(['text', 'text[]', 'source', 'level'])  // 业务读
+const NEXT_INTERNAL_QUERY_KEYS = new Set(['_rsc'])                   // 协议内部
+
+const unknownKeys = Object.keys(params).filter(
+  (k) => !KNOWN_KEYS.has(k) && !NEXT_INTERNAL_QUERY_KEYS.has(k),
+)
+if (unknownKeys.length > 0) {
+  // server-side redirect 到只剩 known key 的 canonical URL
+  // (新请求的 RSC payload 不含 unknown key,攻击者 URL 投毒被消毒)
+  redirect(...)
+}
+```
+
+### 11.3 三道闸（防止白名单过时）
+
+1. **实测带协议内部 query 的 URL**：curl `?_rsc=xxx` 看 page 行为是否符合预期
+2. **smoke 测例覆盖**：每个 known 内部 query 一个测例（`expectStatus: 200, expectAny: [...]`，不 followRedirect）
+3. **cross-check 测例**：攻击者 `?reason=evil&_rsc=xxx` 必须仍被消毒（reason 是 unknown，但 `_rsc` 放行）
+
+### 11.4 future-proof 机制
+
+- 注释里显式标："Next.js 改协议时需同步扩 `NEXT_INTERNAL_QUERY_KEYS` 集合"
+- 列入 `docs/01-to-do.md` 跟踪
+- 每月手 check 一次 Next.js changelog，看 RSC 协议 query 有没有改
+- 可选：加 CI lint 测，对比 `node_modules/next/dist/client/components/app-router-headers.js` 已知 `*_QUERY` 常量
+
+### 11.5 相关案例
+
+- `src/app/risk-alert/page.tsx` 当前实现
+- `scripts/smoke.mjs` Fix #8 + 自审 _rsc 测例
+
+### 11.6 黑盒依赖提醒
+
+Next.js RSC payload 序列化行为是**黑盒** —— 框架版本升级、内部 query 改名、协议重构都可能让"看起来对"的代码失效。
+**唯一可靠验证方式**：curl + grep 响应体（不靠 visible summary 肉眼检查，靠 grep 整响应看攻击者文案是否在 body 里）。
+
+

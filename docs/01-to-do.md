@@ -137,6 +137,29 @@
   - 真异常时 `log.error` 含 `err` + 文本 hash（不打 raw text 避免 PII）。
   - AI 兜底真接测试 + smoke test 必过。
 
+## P2 测试覆盖洞（2026-06-09 Fix #3/#8 会话发现）
+
+### 14. 🆕 `firstParam` helper 缺单测
+
+- 现状：`src/app/risk-alert/page.tsx` 新加的本地 `firstParam(value: string | string[] | undefined): string | undefined` 纯函数，**只**被 HTTP smoke 测过（`scripts/smoke.mjs` 测了 `?text[]=foo` 一例），没单测。
+- 验收标准：
+  - `firstParam` 至少 5 个单测：`'foo' → 'foo'` / `['foo','bar'] → 'foo'` / `[] → undefined` / `undefined → undefined` / `['foo',''] → 'foo'`。
+  - 测文件可放 `src/app/risk-alert/__tests__/page.test.ts` 或同目录的 `first-param.test.ts`。
+
+### 15. 🆕 unknown-key redirect 行为只 HTTP smoke 覆盖
+
+- 现状：`page.tsx` 顶部 `KNOWN_KEYS` + `NEXT_INTERNAL_QUERY_KEYS` + redirect 逻辑是 server component 主逻辑的一部分，**没** page-level 单测，只靠 `scripts/smoke.mjs` 的 4 个 expectNone/expectStatus 测例覆盖。
+- 验收标准：
+  - 至少 3 个测例：① URL 含 unknown key → 307 到 canonical ② URL 只含 `_rsc` → 200 不 redirect ③ URL 含 reason + _rsc → 307（cross-check）④ 文本空 + 含 unknown key → 307（不是先 redirect('/')）。
+  - 测 Next.js server component 直接单测成本高，可考虑把 redirect target 构造抽成纯函数 `buildCanonicalHref(params)` 单独测。
+
+### 16. 🆕 `KNOWN_KEYS` / `NEXT_INTERNAL_QUERY_KEYS` 协议白名单需 future-proof
+
+- 现状：`NEXT_INTERNAL_QUERY_KEYS = new Set(['_rsc'])` 是字面量。Next.js 改协议（如改用 `__rsc__`）时需手动扩集合，否则又会出现同类 bug（`text[]=foo` 那种"协议约束变了我们没跟上"）。
+- 验收标准：
+  - 加 CI lint 测：构造一组 `node_modules/next/dist/client/components/app-router-headers.js` 已知的 `*_QUERY` 常量，与 `NEXT_INTERNAL_QUERY_KEYS` 做集合差集比较，缺一个就 warn（不 fail，避免 Next.js 升级时阻塞）。
+  - 或更轻：每月手 check 一次 Next.js changelog，看 RSC 协议 query 有没有改。
+
 ## P3 后续版本
 
 ### 14. 家人端

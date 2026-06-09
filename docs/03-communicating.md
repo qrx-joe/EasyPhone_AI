@@ -123,3 +123,95 @@
 - Vercel production 部署：稳定 Ready
 - 旧 key 轮换：未做（强烈建议用户尽快处理）
 
+## 2026-06-09：Fix #3 / Fix #8 + _rsc + rebase 合冲突 + PR #5 落地
+
+### 用户输入
+
+- 状态框两条线："本地 main 落后 origin 1 commit" + "🟡 2 个 pre-existing smoke 失败（/risk-alert Fix #3/#8）"
+- "这两个任务现在完成" —— **用户判断完成**，但实际 smoke 17 passed / 2 failed
+- 多次"我无法做出判断" —— 用户主动承认非技术边界，要求 AI 翻译成业务影响
+- 4 条强约束（Fix #3 A 选型确认时用户提的）：
+  1. Fix #3 A 要删干净（不只删 `console.info`，连解构 + 类型声明 + 顶部注释里的 `&reason=` 都要拿掉）
+  2. smoke 注释同步（"reason 仅服务端审计日志用" → "完全忽略"）
+  3. Fix #8 A 只接受精确 key：`text` 或 `text[]`，不模糊匹配
+  4. searchParams 类型改真实（`string | string[]`），用 `firstParam` helper 收敛
+- "提交" / "push" / "1. 开 PR" / "合 main" —— 4 步显式授权每一步
+
+### AI 操作
+
+1. **第一遍：错误接受"已完成"判断**
+   - 我**先信了用户说"完成"**，没有自己跑 smoke
+   - 跑 smoke 后才发现 Fix #3 / #8 实际失败（17 passed, 2 failed）
+   - **这是我的判断错位** —— "用户说完成" 不等于 "evidence 拿到"
+
+2. **诊断 Fix #3 / #8 失败根因**
+   - Fix #3：page.tsx 解构了 `searchParams.reason` 并做 audit log，**Next.js 把整个 searchParams 序列化进 RSC `__PAGE__?{...}` 流** → 攻击者 URL 上的 reason 出现在响应体里。visible summary 是安全的（硬编码），但 grep 抓得到。
+   - Fix #8：`?text[]=foo` 被 Next.js 解析为字面 key `'text[]'`（不是 `text:['foo']`），旧 fix 的 `Array.isArray(text) ? text[0] : text` 挡不住，cleanText 空，redirect('/') 307。
+
+3. **修第一遍（半截 fix）**
+   - 删除 destructure reason + audit log；risk.reason 硬编码安全默认
+   - searchParams 类型改真实：`text?: string | string[]` + `'text[]'?: string | string[]`
+   - 新增 `firstParam` 本地 helper
+   - 加 page 顶部 unknown-key redirect：URL 里有 reason 等恶意 key → server-side 重定向到只剩 known key 的 canonical URL
+   - smoke 注释同步更新
+
+4. **修第二遍（自审发现 _rsc 回归）**
+   - 我自己 review 时想到：客户端 `<Link>` / `router.push` 走 RSC 协议会发 `?_rsc=xxx`，**被 redirect 吞掉会破坏客户端导航**
+   - 实测：curl `?text=...&_rsc=xxx` 看到响应是 307 → /risk-alert?text=...（_rsc 没了）
+   - 翻 Next.js 源码：`node_modules/next/dist/client/components/app-router-headers.js` 里 `NEXT_RSC_UNION_QUERY = '_rsc'`
+   - 结论：**光删 destructure 是半截 fix**，必须在 URL 入口消毒（redirect） + 加 `NEXT_INTERNAL_QUERY_KEYS` 白名单接住 Next.js 协议内部 query
+
+5. **用户两次"无法做出判断" + 4 条强约束 + 1 个最终选择**
+   - 第一次"无法判断"：我列了 A/B/C 三个选项让用户挑，用户继续说无法判断
+   - 我意识到这是**产品负责人不该背技术细节**的边界 → 主动把技术翻译成业务影响（"老人输入问题后页面卡住"）
+   - 用户看完说"A"（恢复 _rsc 白名单）+ 给 4 条强约束
+
+6. **执行用户拍板的方案**
+   - 加 `NEXT_INTERNAL_QUERY_KEYS = new Set(['_rsc'])`
+   - smoke 补 2 测例：① `?_rsc=xxx` 单独不 redirect ② `?reason+_rsc` 攻击者 cross-check 仍 redirect
+   - 全量验证：smoke 21 passed / pnpm test 156 passed / openprd dev-check + quality + run + doctor 全过
+
+7. **用户授权提交 + push + 开 PR + 合 main**
+   - `git checkout -b fix/risk-alert-fix-3-and-8`（不能在 main 上直接 commit）
+   - commit `7cba635`（含 4 个安全不变量"未改"声明）
+   - `git push -u origin fix/risk-alert-fix-3-and-8` → 第一次 push 成功
+   - `gh pr create` → PR #5 创建
+   - `gh pr merge --squash --delete-branch` → **撞到冲突**
+
+8. **rebase 解决冲突（机械合）**
+   - main 上有 PR #2 `feat(deep-link-guard)` 5 个新 commit
+   - 冲突只在 `scripts/smoke.mjs`（两边都加了测例，逻辑零冲突）
+   - `git stash -u`（保护 .openprd state noise） → `git rebase origin/main` → 手解 smoke.mjs 冲突（取两边 4 个测例）→ `git stash pop`
+   - 新 commit `bff458d`，`git push --force-with-lease` 成功
+   - smoke 23 passed（21 我 + 2 deep link guard）
+
+9. **最终合 main**
+   - re-verify 全过 → `gh pr merge 5 --squash --delete-branch` → main 头变 `8240e7d`
+   - 验证 main 上 merge commit 只改了我那 2 个文件（12 files 那个是 PR 历史 diff，squash 后只剩 2）
+   - 删本地分支（远程 + 本地都被 `--delete-branch` 清掉）
+   - `docs/.openprd/engagements/active/progress.md` 加 final 收口 entry → commit `2b645b7` 推 main
+
+### 关键判断
+
+- **"用户说完成" ≠ evidence 拿到**：fix 完成后必须自己跑 smoke / 看测试结果，不能 commit message / 用户口头确认就当成 done
+- **"代码里不读 X" ≠ "响应体里没有 X"**：Next.js RSC payload 把整个 searchParams 序列化是黑盒，光改 server component 业务逻辑不够，必须在 URL 入口消毒（redirect） + 协议内部 query 白名单
+- **"安全不变量文件改动需要用户显式确认方向"**：Fix #3 动 `src/app/risk-alert/page.tsx` 是 AGENTS.md 列的安全不变量分支，AI 不应自作主张
+- **"产品负责人不该背技术细节"**：用户两次"无法做出判断" → 我应该主动翻译成业务影响（"老人输入问题后页面卡住"），而不是让用户挑技术选项 A/B/C
+- **"安全 fix 不能只看 visible summary"**：必须 grep 整个响应体，因为 RSC payload 会把攻击者 URL 文本序列化进响应
+- **"消毒类 fix 必须确认不会吃掉框架协议内部 query"**：自审发现 _rsc 回归就是这个原则的体现
+- **"本地 main 落后 origin 1 commit"**：本轮一开头用户说落后，我看了 `git rev-list` 已是 0/0，那条状态已不再准确
+
+### 待用户确认
+
+- Vercel production deploy 是否在 dashboard 上看到 main 这次 commit 标 Ready（这步我远程看不到）
+- 旧 key 轮换：仍未做
+
+### 后续处理
+
+- ✅ PR #5 squash merged into main as `8240e7d`
+- ✅ 收口 commit `2b645b7`（progress.md）推 main
+- ✅ 2 条 OpenPrd candidate 自动沉淀：`hidden-debug-knowledge`（不读 X ≠ 响应体里没有 X）+ `high-impact-fix`（消毒类 fix 必须确认不破坏框架协议）
+- ✅ 工作目录只剩 .openprd state noise（自动管理，下次 session 或 hook 处理）
+- 🔧 Vercel production deploy 是否自动 promote（用户自查 dashboard）
+- 🔧 旧 key 轮换（仍未做）
+

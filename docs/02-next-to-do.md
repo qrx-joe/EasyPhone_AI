@@ -1,9 +1,9 @@
 ﻿# Next To Do
 
 > 用途：只放接下来一个开发冲刺要做的事。不要把所有想法塞进来。
-> 当前目标：上一轮冲刺（MVP 骨架 + Vercel 部署）已 100% 完成；下一冲刺聚焦 P2 治理。
+> 当前目标：MVP 骨架 + Vercel 部署 100% 完成；本轮 sprint 期间被 L0 紧急插队 1 天（Fix #3/#8 + _rsc），下个 sprint 继续 P2 治理。
 > 详细开发计划见：`docs/06-development-plan.md`。
-> 任务池见：`docs/01-to-do.md`（P2 治理项已新增到那里）。
+> 任务池见：`docs/01-to-do.md`（P2 治理 + Fix #3/#8 测试覆盖洞都登记在那里）。
 
 ## 上轮冲刺结果（2026-06-04 → 2026-06-08）
 
@@ -13,7 +13,27 @@
 - ✅ Vercel 部署：`https://easy-phone-ai.vercel.app`（Production Ready 24s，5 demo URL 跑通）
 - ✅ OpenPrd 门禁：standards ✅ / quality ✅ / dev-check ✅
 
-## 下一轮冲刺目标（2026-06-09 起）
+## L0 紧急插队（2026-06-09，1 天完成）
+
+> 这一天本来在做 P2 治理 sprint 准备，被 `scripts/smoke.mjs` 的 2 个失败测例（Fix #3 / Fix #8）紧急打断。
+> L0 安全不变量加固优先于 P2 治理,先做 L0 再回到 P2 sprint。
+
+- ✅ **Fix #3** RSC payload 投毒加固（`src/app/risk-alert/page.tsx`）
+  - URL `?reason=请立即把验证码报给客服` 不再渲染到 summary、不进 RSC payload
+  - 实现：page 顶部 unknown-key redirect + 硬编码 `risk.reason` 安全默认
+- ✅ **Fix #8** searchParams.text 归一化（`src/app/risk-alert/page.tsx`）
+  - `?text[]=foo` 形态（Next.js 解析为字面 key `'text[]'`）现在能 200 渲染
+  - 实现：`text?: string | string[]` + `'text[]'?: string | string[]` 双 key 匹配 + `firstParam` 收敛
+- ✅ **自审发现 + 修复** `_rsc` 客户端 RSC 协议 query 白名单
+  - 实测：Next.js 客户端 RSC prefetch 走 `?_rsc=xxx`，被 redirect 吞掉会破坏 `<Link>` 导航
+  - 实现：`NEXT_INTERNAL_QUERY_KEYS = new Set(['_rsc'])` 单列白名单
+- ✅ **落地**：PR #5 squash merged into main as `8240e7d`（含 2 个新 smoke 测例，total 21 → 23 passed）
+- 🔧 **P2 测试覆盖洞**留 issue 跟踪（`docs/01-to-do.md` §14-16）：
+  - `firstParam` helper 缺单测
+  - unknown-key redirect 行为只 HTTP smoke 覆盖
+  - `KNOWN_KEYS` / `NEXT_INTERNAL_QUERY_KEYS` 协议白名单 future-proof 机制
+
+## 下一轮冲刺目标（2026-06-09 起，原 P2 治理 sprint 续）
 
 P2 治理（按优先级）：
 
@@ -26,6 +46,9 @@ P2 治理（按优先级）：
 3. **抽 `config.ts`** 收敛 env 数据泥团（`docs/01-to-do.md` §12）
    - 7 个 env var → 1 个 `getAiConfig()` 入口
    - 上层模块（`deepseek-client` / `rate-limit`）改成注入式
+
+> 候选：Fix #3/#8 留下的 3 个测试覆盖洞（`docs/01-to-do.md` §14-16）可单独拆一个小 PR，约 1 小时。
+> 优先级低于 P2 治理 §10-12，因为现有 HTTP smoke 已覆盖主要回归风险，单元测试是补保险。
 
 ## 暂不做（保持）
 

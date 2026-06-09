@@ -181,3 +181,82 @@ production client bundle 是同一份，1 个能动其他 5 个理论不会错�
 - 收口 5 层 try/catch（P2 治理 §13）
 - 评估栈替换（P3 调研，栈评估报告写 `docs/09-stack-evaluation.md`）
 
+## 2026-06-09：Fix #3/#8 + _rsc + 自审发现回归 — 4 条新教训
+
+### 1. "用户说完成" ≠ evidence 拿到 —— 必须自己跑 smoke
+
+你说"这两个任务现在完成"，我**先信了**，没自己跑 smoke 就开始庆祝。后来跑 smoke 才发现 Fix #3 / #8 实际失败。
+
+**问题**：你给的判断 + commit message 写的"fix #3/#8" 都不是 evidence。Evidence 是 smoke 实际跑过 + 看到 0 failed。
+
+**未来标准**：
+- 任何 fix 说"完成"必须带 smoke 输出（`smoke result: N passed, 0 failed`）
+- 任何 P0 改动说"完成"必须带 `openprd quality --verify` 的 `production-ready: 是`
+- 口头报告 / commit message / 主观判断 **都不是** 完成信号
+
+### 2. "代码里不读 X" ≠ "响应体里没有 X" —— Next.js RSC payload 是黑盒
+
+Fix #3 我第一版只删了 destructure reason + audit log，**没意识到**：
+- `risk.reason` 不进业务逻辑 → ✓ 不渲染
+- 但 Next.js 仍把整个 searchParams 序列化进 RSC `__PAGE__?{...}` 流 → ✗ **攻击者 URL 文本仍出现在响应体**
+
+**教训**：
+- 服务端组件 / SSR 框架（Next.js / Nuxt / SvelteKit）会把 URL 形态序列化进 HTML/stream 的一部分
+- 测安全 invariant **必须 grep 整个响应体**，不能只看 visible summary / DOM
+- 框架黑盒 = 必须实测，不能推理
+
+**OpenPrd candidate 已自动记录**：`hidden-debug-knowledge` 类。
+
+### 3. "消毒类 fix 必须确认不会吃掉框架协议内部 query"
+
+Fix #3 的 unknown-key redirect 把所有 URL 上没声明的 key 都重定向掉。**但是**：
+- Next.js 客户端 RSC prefetch 走 `?_rsc=xxx`（`node_modules/next/dist/client/components/app-router-headers.js` 里 `NEXT_RSC_UNION_QUERY = '_rsc'`）
+- 我第一版 redirect 会把 `_rsc` 吞掉 → 客户端 router 拿 HTML 而非 RSC stream → `<Link>` 导航坏掉
+- **影响**：老人在首页输入问题 → `router.push('/risk-alert?text=...')` 走客户端导航 → 卡住/白屏
+
+**教训**：
+- 加任何"白名单" / "已知 key 集合"时，要先列出来框架/协议会塞的内部 query
+- 这类"白名单过时" bug 一旦发生**不会让测试失败**（因为是协议内部契约，smoke 测不到）
+- 唯一防御：**实测带协议内部 query 的 URL**，看白名单是否吃掉
+- future-proof：注释里标"Next.js 改协议时需同步扩集合"+ 列入 `docs/01-to-do.md` §16 跟踪
+
+**OpenPrd candidate 已自动记录**：`high-impact-fix` 类。
+
+### 4. "产品负责人不该背技术细节" —— AI 必须主动翻译
+
+你两次说"我无法做出判断，你可以帮我吗？因为我不理解这代表着什么"。
+
+**这是产品负责人的合理边界**，但暴露了我的流程问题：
+- 我列了 A/B/C 三个技术选项让你挑 → 你挑不动
+- 这是把"AI 该做的技术判断"甩给"产品负责人"
+
+**修正**：
+- 看到"无法判断"信号 → 立刻停止技术选项罗列
+- 主动把每个选项翻译成**业务影响**（用户视角）：
+  - "选 A：老人用 app 一切正常"（business: ✓ 老人能用）
+  - "选 B：老人输入问题后跳转失败"（business: ✗ MVP 演示崩盘）
+  - "选 C：换思路但要重写"（business: 影响面大）
+- 业务影响写清楚后，**产品负责人**才能做"是 MVP 关键路径"还是"可暂缓"的判断
+- 你的"无法判断"在 4 个修法选型上**不应该**触发（这是技术选型不是业务判断），但**修复 _rsc 这条**确实需要产品负责人拍"老人用 app 不能坏"的原则
+
+**未来标准**：
+- AI 给出 2+ 选项时，每个选项必须带**业务影响 1 句话**
+- 看到"无法判断"信号**3 秒内**切换到业务影响语言
+- 不甩技术黑话
+
+### 5. 这次沉淀的 3 个测试覆盖洞（不是 bug，是覆盖不足）
+
+P2 治理项（`docs/01-to-do.md` §14-16）：
+
+1. **`firstParam` helper 缺单测** —— 纯函数，5 个 case 就够
+2. **unknown-key redirect 行为只 HTTP smoke 覆盖** —— 测 Next.js server component 直接单测成本高，可考虑把 redirect target 构造抽成纯函数 `buildCanonicalHref(params)` 单独测
+3. **`KNOWN_KEYS` / `NEXT_INTERNAL_QUERY_KEYS` 协议白名单 future-proof 机制** —— 加 CI lint 测，对比 `node_modules/next/dist/client/components/app-router-headers.js` 已知 `*_QUERY` 常量，缺一个就 warn
+
+这些不是 critical，但是这次 fix 的"复利" —— 写下来下次就有人补。
+
+### 架构坏味道提醒（2026-06-09 新增）
+
+- **黑盒依赖（新增）**：Next.js RSC payload 序列化行为是黑盒，**只**通过实测（curl + grep 响应体）能确认。光看文档不够。这次 fix 至少 2 个"看起来对"的方案实测后才发现有 bug。
+- **半截 fix 风险（新增）**：业务层改了不读 X → 业务安全 ≠ 响应体安全。光改 server component 业务逻辑不够，必须在 URL 入口消毒 + 协议内部 query 白名单。两层独立机制。
+- **用户口头判断不可信（新增）**："完成" / "配好了" / "上线了" 这类口头判断，必须接 evidence（smoke output / `git status` / `vercel ls` / `vercel env ls`）才能信。这是 2026-06-08 教训的延续（3 次"配好了"反馈失真）。
+
