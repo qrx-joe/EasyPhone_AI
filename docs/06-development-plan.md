@@ -2,8 +2,28 @@
 
 > 项目：EasyPhone AI / 爸妈别急
 > 版本：MVP 开发计划 v1
-> 日期：2026-06-04
+> 日期：2026-06-04（原始计划）
+> 最近更新：2026-06-10（追加 §0 当前进度；M5/M6 落地状态）
 > 核心目标：先做出可演示、可验证、不会越界的 AI 语音手机教练 MVP。
+
+## 0. 当前进度（2026-06-10）
+
+> 本节为追加进度表；§1–§9 保留为 2026-06-04 的**原始开发计划快照**。
+
+| 里程碑 | 状态 | 落地日期 | 备注 |
+|---|---|---|---|
+| M0 项目初始化 | ✅ | — | Next.js + TypeScript + Tailwind 可运行 |
+| M1 核心领域模型 | ✅ | — | 风险分类 / 问题 / 教程 / 求助卡 / 路由 |
+| M2 首页与输入流程 | ✅ | — | 文字 / 语音 / 3 个 demo 入口 |
+| M3 低风险分步指导 | ✅ | — | 微信没声音、字体太小两个教程 |
+| M4 高风险中断 + 求助卡 | ✅ | — | 验证码、屏幕共享等高风险直跳提醒页 |
+| M5 AI 风险复检（形态 ①） | ✅ | 2026-06-08 | env `ENABLE_AI_RISK_RECHECK` 控制；Vercel 已开 `DEEPSEEK_API_KEY` smoke test 跑通 |
+| M6 Demo 打磨与部署 | ✅ | 2026-06-08 | Vercel 部署 `https://easy-phone-ai.vercel.app`；4 个 demo 直链跑通 |
+
+**P2 治理对象**（本计划 §4/§5 落地后遗留）:
+- AI recheck 5 层 try/catch fail-open 套娃 → 收口到 `src/lib/ai/safety.ts`（见 `docs/05-project-standards.md` §8.1）
+- AI 复检 rate limit 在 Vercel 多 region 部署时各算各的 → 严格防滥用要换 Redis
+- env 7 字段散在 5 个文件 → 抽 `config.ts` 收敛
 
 ## 1. 当前阶段判断
 

@@ -96,6 +96,7 @@
 
 - 部署 URL：`https://easy-phone-ai.vercel.app`
 - 5 个 demo 直链（`/tutorial/demo?case=wechat|font` + `/risk-alert/demo?case=medical-sms|public-security|screen-share`）跑通。
+  > **2026-06-10 备注**：`public-security` 场景在 README 重写（commit `476f024`）时从首页 demo 入口清单移除；该场景的关键词仍在 `docs/07-risk-keywords-library.md` 公检法分类里命中，模型可继续触发高风险流程。当前对外 demo 数为 **4**。
 - 验收标准：
   - Production build 不依赖 build cache 可重复部署。
   - `@tailwindcss/oxide-linux-x64-gnu` native binding 装得上（`pnpm-workspace.yaml` `supportedArchitectures` 锁 linux/x64/glibc）。

@@ -1,7 +1,7 @@
 # 产品逻辑说明
 
 > OpenPrd 基线文档 · 权威 PRD 见 `docs/00-prd-cn-authoritative.md`,本文档为项目级基线摘要
-> 最近更新:2026-06-05
+> 最近更新:2026-06-10（更新 M5/M6 状态、demo 数量等过期点）
 
 ## 问题与目标
 
@@ -39,9 +39,9 @@
 
 **P1 已完成**:语音识别、语音播报、复制求助卡、Demo 快捷入口、基础测试(80+)
 
-**M5 待做(P2)**:AI 接入 —— 让分类和求助卡更准,见 `.openprd/specs/m5-ai-integration.md`(待 freeze)
+**M5 已完成（2026-06-08，AI 风险复检）**:仅在 `base.level === 'low'` 时跑 DeepSeek recheck；env `ENABLE_AI_RISK_RECHECK` 默认关。详见 `docs/basic/backend-structure.md` "API 接入面" 段。**注意**：M5 接的是"AI 复检"，不是"AI 替规则判断"——安全主防线仍是规则 + `MAX(level)` 保险丝。
 
-**M6 待做**:Demo 打磨 + 部署(Vercel)
+**M6 已完成（2026-06-08）**:Vercel 部署 `https://easy-phone-ai.vercel.app`、4 个 demo 直链跑通、Demo 脚本与录屏就位。详见 `docs/01-to-do.md` §9。
 
 **明确不做**(P3):
 - 真实微信/短信/通讯录读取

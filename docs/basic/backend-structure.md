@@ -1,7 +1,7 @@
 # 后端架构设计
 
 > OpenPrd 基线文档
-> 最近更新:2026-06-05
+> 最近更新:2026-06-10（更新 M5 落地状态、清除"M5 之前/未来"过期标注）
 
 ## 适用范围
 
@@ -30,7 +30,7 @@ EasyPhone_AI MVP **没有独立后端服务**。所有业务逻辑(风险判断�
 - ❌ 用户账号系统(MVP 匿名)
 - ❌ 持久化存储(localStorage 仅前端,且 MVP 不用)
 - ❌ 消息队列
-- ❌ 外部 API 调用(M5 之前)
+- ✅ 外部 API 调用（M5 形态 ① 已落地，2026-06-08；仅 `low` 风险时跑 `/api/route` 做 AI 风险复检，env `ENABLE_AI_RISK_RECHECK` 控制；失败降级到规则）
 
 ## CLI 接入面
 
@@ -52,10 +52,11 @@ EasyPhone_AI MVP **没有独立后端服务**。所有业务逻辑(风险判断�
 
 Android APK 方案采用 TWA 包装已部署的 HTTPS Web App,不新增 Android 原生 API 接入面,不新增短信、通讯录、定位、无障碍、支付或远程控制权限。
 
-**未来(M5)**:
-- 接 LLM API 做更准的分类/求助卡生成
-- 接入面:`/api/classify`(POST text → RiskClassification + HelpRequest)
-- 见 `.openprd/specs/m5-ai-integration.md`(待 freeze)
+**已落地（M5 形态 ①，2026-06-08）**:
+- 接 DeepSeek 做低风险输入的二次复检（`base.level === 'low'` 时触发）
+- 接入面:`/api/route`(POST text → 含 AI recheck 的 `RouteDecision`；AI 未配置/失败时降级到 base 决策)
+- env 开关: `ENABLE_AI_RISK_RECHECK`（默认关）、`DEEPSEEK_API_KEY` / `MODEL` / `BASE_URL` / `AI_RECHECK_TIMEOUT_MS` / `AI_RATE_LIMIT_PER_10MIN` / `AI_DAILY_BUDGET`
+- 已知坏味道: 5 层 try/catch fail-open 套娃 → 收口到 `src/lib/ai/safety.ts` 是 P2 治理对象（见 `docs/05-project-standards.md` §8.1）
 
 ## 数据流
 
@@ -95,7 +96,7 @@ buildRouteForInput(text)               ← 纯函数,跑在 client (首页) 或 
 
 **关键数据约束**(同 docs/05 §3.4 数据最小化):
 - **不保存**:原始语音、验证码、银行卡号、身份证号、支付密码、通讯录、短信、定位
-- **不传输到外部**:M5 之前所有处理都在本机,M5 接 LLM 时只传 question.text(不含个人信息)
+- **不传输到外部**:M5 接 LLM 后**只**传 `question.text`（不含姓名/手机号/验证码/银行卡等 PII）；`DEEPSEEK_API_KEY` 仅留在 Vercel server env，不下发到 client
 - **不跨会话记忆**:每次进首页都是新会话(MVP 没账号)
 
 ## 维护规则

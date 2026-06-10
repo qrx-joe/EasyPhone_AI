@@ -11,6 +11,7 @@
 - ✅ 三个核心 demo 场景：微信没声音、字太小、医保异常短信
 - ✅ AI 兜底真接（M5 形态 ①）：仅在 base.level=low 时跑 DeepSeek recheck，escalate 时跳 `/risk-alert?source=ai`
 - ✅ Vercel 部署：`https://easy-phone-ai.vercel.app`（Production Ready 24s，5 demo URL 跑通）
+  > **2026-06-10 备注**：README 重写（commit `476f024`）后 demo 入口为 **4 个**（移除 `public-security`），关键词库保留。
 - ✅ OpenPrd 门禁：standards ✅ / quality ✅ / dev-check ✅
 
 ## L0 紧急插队（2026-06-09，1 天完成）
