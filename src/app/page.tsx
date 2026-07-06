@@ -47,6 +47,7 @@
 import { useRouter } from 'next/navigation'
 import { useRef, useState } from 'react'
 
+import { Companion } from '@/components/companion/companion'
 import { routeWithFallback } from '@/lib/ai/client-route'
 import { VoiceInputButton } from '@/lib/speech/voice-input-button'
 
@@ -60,6 +61,9 @@ export default function HomePage() {
   const router = useRouter()
   const [mode, setMode] = useState<'idle' | 'text'>('idle')
   const [textInput, setTextInput] = useState('')
+  // AI 判断 pending 态:GMI 推理 4~6s,老人必须看到「它在想」而不是死屏。
+  // 精灵切 thinking + 按钮文案变化 = AI 工作的可见反馈(比赛「体现使用」+ 适老 UX)。
+  const [isRouting, setIsRouting] = useState(false)
 
   // 走统一路由函数(安全核心:高风险绝不走 /confirm)
   //
@@ -75,13 +79,24 @@ export default function HomePage() {
     inFlightRef.current?.abort()
     const ctrl = new AbortController()
     inFlightRef.current = ctrl
-    await routeWithFallback(router, text, 'home', { signal: ctrl.signal })
+    setIsRouting(true)
+    try {
+      await routeWithFallback(router, text, 'home', { signal: ctrl.signal })
+    } finally {
+      // 成功时页面即将跳走,复位无感知;失败/降级路径必须复位,否则永久卡「在想」
+      if (!ctrl.signal.aborted) setIsRouting(false)
+    }
   }
 
   return (
     <main className="flex flex-col items-center min-h-full w-full max-w-2xl mx-auto px-6 py-10 sm:py-16">
-      {/* 标题区 */}
+      {/* 标题区(陪伴小精灵:listening 态,AI 判断中切 thinking;不可点、不进风险页) */}
       <header className="text-center mb-10 sm:mb-14">
+        <Companion
+          mood={isRouting ? 'thinking' : 'listening'}
+          caption={isRouting ? '正在帮您想,请稍等' : '我在听,您慢慢说'}
+          className="mb-4"
+        />
         <h1 className="text-4xl sm:text-5xl font-bold tracking-tight text-(--color-foreground)">
           爸妈别急
         </h1>
@@ -92,7 +107,7 @@ export default function HomePage() {
 
       {/* 主操作区:两个并列大按钮 */}
       <section className="w-full flex flex-col gap-4 mb-10">
-        <VoiceInputButton />
+        <VoiceInputButton onRoutingChange={setIsRouting} />
 
         <button
           type="button"
@@ -120,10 +135,11 @@ export default function HomePage() {
             <button
               type="button"
               onClick={() => goConfirm(textInput)}
-              disabled={!textInput.trim()}
+              disabled={!textInput.trim() || isRouting}
               className="w-full min-h-[64px] px-6 py-3 rounded-xl bg-(--color-primary) hover:bg-(--color-primary-hover) disabled:bg-(--color-muted) disabled:cursor-not-allowed transition text-white text-xl font-semibold"
+              aria-busy={isRouting}
             >
-              告诉我
+              {isRouting ? '正在帮您想…' : '告诉我'}
             </button>
           </div>
         )}
@@ -138,7 +154,8 @@ export default function HomePage() {
               key={c.text}
               type="button"
               onClick={() => goConfirm(c.text)}
-              className="w-full min-h-[64px] px-5 py-3 rounded-xl bg-white hover:bg-(--color-soft) active:scale-[0.99] transition text-left text-xl text-(--color-foreground) border border-(--color-border) flex items-center gap-4"
+              disabled={isRouting}
+              className="w-full min-h-[64px] px-5 py-3 rounded-xl bg-white hover:bg-(--color-soft) active:scale-[0.99] transition text-left text-xl text-(--color-foreground) border border-(--color-border) flex items-center gap-4 disabled:opacity-60 disabled:cursor-not-allowed"
               aria-label={`常见问题:${c.label}`}
             >
               <span aria-hidden className="text-2xl flex-shrink-0">{c.emoji}</span>

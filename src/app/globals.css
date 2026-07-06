@@ -95,3 +95,65 @@ button {
   outline-offset: 2px;
 }
 
+/* ─────────────────────────────────────────────────────────────────
+ * 陪伴小精灵动画(src/components/companion/companion.tsx)。
+ *
+ * 克制原则:动画只表达「活着 / 在说话」,不表达「快看我」。
+ *   - 呼吸:4s 极轻微缩放(1 → 1.03),低于注意力捕获阈值;
+ *   - 眨眼:6s 一次,拟人的最低成本;
+ *   - 说话嘴:0.35s 开合,只在 speaking=true 时挂载;
+ *   - 光点:teaching 态 2.4s 缓慢明暗。
+ * prefers-reduced-motion 时全部停止 —— 前庭障碍在老年群体中比例更高,
+ * 这不是锦上添花,是无障碍硬要求。
+ * ───────────────────────────────────────────────────────────────── */
+
+@keyframes companion-breathe {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.03); }
+}
+
+@keyframes companion-blink {
+  0%, 94%, 100% { transform: scaleY(1); }
+  97% { transform: scaleY(0.08); }
+}
+
+@keyframes companion-speak {
+  0%, 100% { transform: scaleY(1); }
+  50% { transform: scaleY(0.35); }
+}
+
+@keyframes companion-glow {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.45; }
+}
+
+.companion-breathe {
+  animation: companion-breathe 4s ease-in-out infinite;
+  transform-origin: center;
+}
+
+.companion-eyes {
+  animation: companion-blink 6s ease-in-out infinite;
+  transform-origin: 50px 50px;
+  transform-box: view-box;
+}
+
+.companion-mouth-speak {
+  animation: companion-speak 0.35s ease-in-out infinite;
+  transform-origin: 50px 68px;
+  transform-box: view-box;
+}
+
+.companion-glow {
+  animation: companion-glow 2.4s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .companion-breathe,
+  .companion-eyes,
+  .companion-mouth-speak,
+  .companion-glow {
+    animation: none;
+  }
+}
+

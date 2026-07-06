@@ -47,6 +47,7 @@
 import Link from 'next/link'
 import { useState } from 'react'
 
+import { Companion } from '@/components/companion/companion'
 import type { Tutorial } from '@/domain/tutorial/tutorial'
 import { SpeakButton } from '@/lib/speech/speak-button'
 import { SpeechRateControl, useSpeechRate } from '@/lib/speech/speech-rate'
@@ -76,8 +77,9 @@ export function TutorialClient({ text, tutorial }: Props) {
 
   return (
     <main className="flex flex-col items-center min-h-full w-full max-w-2xl mx-auto px-6 py-8 sm:py-12">
-      {/* 标题区:用户问题 + 教程名 */}
+      {/* 标题区:陪伴精灵(teaching 态,小尺寸不抢步骤注意力) + 用户问题 + 教程名 */}
       <header className="w-full text-center mb-6">
+        <Companion mood="teaching" size={64} className="mb-3" />
         <p className="text-base text-(--color-muted) mb-1">您的问题</p>
         <p className="text-lg sm:text-xl text-(--color-foreground) mb-3 break-words">
           「{text}」

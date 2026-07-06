@@ -40,17 +40,28 @@
  *   - 出错时给「下一步怎么做」(用打字告诉我)
  */
 
-import { useRef } from 'react'
+import { useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 
 import { routeWithFallback } from '@/lib/ai/client-route'
 
 import { useSpeechRecognition } from './use-speech-recognition.ts'
 
-export function VoiceInputButton() {
+interface VoiceInputButtonProps {
+  /**
+   * AI 判断 pending 变化回调(可选)。
+   * 首页用它让陪伴精灵切 thinking 态 —— 语音提交后 GMI 推理 4~6s,
+   * 老人必须看到「它在想」。不传则只有按钮自身的 pending 文案。
+   */
+  onRoutingChange?: (routing: boolean) => void
+}
+
+export function VoiceInputButton({ onRoutingChange }: VoiceInputButtonProps = {}) {
   const router = useRouter()
   // in-flight 守卫:和 <HomePage> 同款,连说两次只走最后一次的路由
   const inFlightRef = useRef<AbortController | null>(null)
+  // AI 判断 pending(识别结束 → 路由响应之间的等待期,约 4~6s)
+  const [isRouting, setIsRouting] = useState(false)
   const { state, transcript, errorMessage, isSupported, start, stop } =
     useSpeechRecognition({
       onFinal: (text) => {
@@ -61,7 +72,17 @@ export function VoiceInputButton() {
           inFlightRef.current?.abort()
           const ctrl = new AbortController()
           inFlightRef.current = ctrl
-          await routeWithFallback(router, text, 'voice', { signal: ctrl.signal })
+          setIsRouting(true)
+          onRoutingChange?.(true)
+          try {
+            await routeWithFallback(router, text, 'voice', { signal: ctrl.signal })
+          } finally {
+            // 成功即跳页,复位无感知;失败/降级必须复位,否则卡「在想」
+            if (!ctrl.signal.aborted) {
+              setIsRouting(false)
+              onRoutingChange?.(false)
+            }
+          }
         })()
       },
     })
@@ -73,22 +94,30 @@ export function VoiceInputButton() {
       ? '语音暂时用不了'
       : '再点一次说问题'
     : '点一下说问题'
-  const buttonLabel = isListening ? '正在听,点一下停' : idleLabel
+  const buttonLabel = isListening
+    ? '正在听,点一下停'
+    : isRouting
+      ? '听到了,正在帮您想…'
+      : idleLabel
 
   return (
     <div className="w-full flex flex-col gap-3">
       <button
         type="button"
         onClick={isListening ? stop : start}
+        disabled={isRouting}
         className={
           isListening
             ? 'w-full min-h-[80px] px-6 py-4 rounded-2xl bg-(--color-danger) text-white text-2xl font-semibold flex flex-col items-center justify-center gap-1 shadow-md animate-pulse'
-            : isUnavailable
-              ? 'w-full min-h-[80px] px-6 py-4 rounded-2xl bg-(--color-soft) hover:bg-(--color-soft-hover) active:scale-[0.98] transition text-(--color-foreground) text-2xl font-semibold flex flex-col items-center justify-center gap-1 border-2 border-(--color-border)'
-              : 'w-full min-h-[80px] px-6 py-4 rounded-2xl bg-(--color-primary) hover:bg-(--color-primary-hover) active:scale-[0.98] transition text-white text-2xl font-semibold flex flex-col items-center justify-center gap-1 shadow-sm'
+            : isRouting
+              ? 'w-full min-h-[80px] px-6 py-4 rounded-2xl bg-(--color-primary-soft) text-(--color-primary) text-2xl font-semibold flex flex-col items-center justify-center gap-1 border-2 border-(--color-primary) cursor-wait'
+              : isUnavailable
+                ? 'w-full min-h-[80px] px-6 py-4 rounded-2xl bg-(--color-soft) hover:bg-(--color-soft-hover) active:scale-[0.98] transition text-(--color-foreground) text-2xl font-semibold flex flex-col items-center justify-center gap-1 border-2 border-(--color-border)'
+                : 'w-full min-h-[80px] px-6 py-4 rounded-2xl bg-(--color-primary) hover:bg-(--color-primary-hover) active:scale-[0.98] transition text-white text-2xl font-semibold flex flex-col items-center justify-center gap-1 shadow-sm'
         }
         aria-label={isListening ? '正在听,点一下停止' : buttonLabel}
         aria-pressed={isListening}
+        aria-busy={isRouting}
       >
         <span>{buttonLabel}</span>
         {errorMessage && !isListening && (
