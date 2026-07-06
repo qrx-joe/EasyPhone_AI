@@ -37,24 +37,14 @@ import { classifyRiskByRules } from '../risk/classify-risk.ts'
 import { createQuestion } from '../question/question.ts'
 import { createHelpRequest } from './help-request.ts'
 import { buildHelpRequest } from './help-templates.ts'
+import { FORBIDDEN_GIVE_AWAY_PATTERNS } from './forbidden-patterns.ts'
 
-// "教给出去"模式清单 —— 求助卡**绝对不能**包含这类话术。
-// 注意:这跟"不要告诉对方验证码"是相反的:
+// "教给出去"模式清单已提为领域模块(forbidden-patterns.ts),
+// 与 AI 输出的运行时安全闸(prompts/help-summary.ts)共用同一份 ——
+// 防止 test 清单和 runtime 清单各改各的漂移。
+// 说明见 forbidden-patterns.ts 顶部注释:
 //   - "不要告诉对方验证码" ✅ 反诈骗安全提示(应该出现)
 //   - "把验证码发给我"      ❌ 教给出去(绝不能出现)
-// 关键词库(classify-risk.ts §2)已经定义了这些是"骗子索取"话术。
-const FORBIDDEN_GIVE_AWAY_PATTERNS = [
-  '念给我听',
-  '报一下',
-  '发给我',
-  '念给我',
-  '读出来',
-  '念出来',
-  '把验证码发',
-  '把密码发',
-  '把身份证发',
-  '把银行卡发',
-]
 
 function makeQuestion(text: string) {
   const risk = classifyRiskByRules(text)

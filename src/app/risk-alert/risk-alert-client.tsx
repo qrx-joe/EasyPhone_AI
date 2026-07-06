@@ -45,7 +45,7 @@
  */
 
 import Link from 'next/link'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 import type { HelpRequest } from '@/domain/help/help-request'
 import { serializeHelpCard } from '@/domain/help/card-serialization'
@@ -58,9 +58,46 @@ export function RiskAlertClient({ help }: Props) {
   const [copyState, setCopyState] = useState<'idle' | 'success' | 'error'>(
     'idle',
   )
+  // AI 升级版 summary(形态 ③)。null = 还没有/失败,一律显示模板 summary。
+  // 页面**永远**先用模板秒开 —— 「停」不等 AI。
+  const [aiSummary, setAiSummary] = useState<string | null>(null)
+  const [aiPending, setAiPending] = useState(true)
+
+  useEffect(() => {
+    const ctrl = new AbortController()
+    void (async () => {
+      try {
+        const res = await fetch('/api/help-summary', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            text: help.question.text,
+            level: help.riskLevel === 'critical' ? 'critical' : 'high',
+          }),
+          signal: ctrl.signal,
+        })
+        if (!res.ok) return
+        const data = (await res.json()) as { summary?: unknown }
+        // 客户端也做一次类型收敛 —— 不信任何网络边界
+        if (typeof data.summary === 'string' && data.summary.trim()) {
+          setAiSummary(data.summary.trim())
+        }
+      } catch {
+        // fail-open:模板 summary 已在屏上,静默即可
+      } finally {
+        if (!ctrl.signal.aborted) setAiPending(false)
+      }
+    })()
+    return () => ctrl.abort()
+  }, [help.question.text, help.riskLevel])
+
+  // 展示/复制/预览统一用同一份数据 —— 老人看到的就是发出去的
+  const displayHelp: HelpRequest = aiSummary
+    ? { ...help, summary: aiSummary }
+    : help
 
   async function handleCopy() {
-    const text = serializeHelpCard(help)
+    const text = serializeHelpCard(displayHelp)
     try {
       // Clipboard API 需要 secure context (https / localhost),且需要 user gesture
       if (typeof navigator !== 'undefined' && navigator.clipboard) {
@@ -100,9 +137,17 @@ export function RiskAlertClient({ help }: Props) {
         先别操作,这可能是诈骗
       </h1>
 
-      {/* summary 人话解释 */}
-      <p className="text-xl text-(--color-foreground) text-center mb-8 leading-relaxed px-2">
-        {help.summary}
+      {/* summary 人话解释(AI 升级后原地替换;模板兜底保证永不空白) */}
+      <p className="text-xl text-(--color-foreground) text-center mb-2 leading-relaxed px-2">
+        {displayHelp.summary}
+      </p>
+      {/* AI 状态行:pending 提示在整理;成功后标注来源(评委/家人都能看到 AI 参与) */}
+      <p className="text-sm text-(--color-muted) text-center mb-6" role="status">
+        {aiPending
+          ? 'AI 正在把这件事整理成家人能看懂的说明…'
+          : aiSummary
+            ? '↑ 已由 AI 整理成给家人看的说明'
+            : ''}
       </p>
 
       {/* 「您刚才说的」段落 —— 老人自己看,学到了"为什么是危险" */}
@@ -199,7 +244,7 @@ export function RiskAlertClient({ help }: Props) {
           卡片内容预览(点击展开)
         </summary>
         <pre className="mt-3 text-sm leading-relaxed whitespace-pre-wrap break-words text-(--color-foreground)">
-          {serializeHelpCard(help)}
+          {serializeHelpCard(displayHelp)}
         </pre>
       </details>
 

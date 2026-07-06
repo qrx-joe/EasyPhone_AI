@@ -51,6 +51,73 @@ EasyPhone AI 的核心不是“替老人操作手机”，而是做一个有安�
 
 ## 4. 技术或创意实现
 
+### 架构:AI 在哪里介入
+
+```mermaid
+flowchart TD
+    subgraph client["📱 老人端(浏览器)"]
+        A["语音 / 文字提问"] --> B["Web Speech API 转写"]
+    end
+
+    subgraph server["🛡️ 服务端 · 安全核心(规则是主防线)"]
+        C["POST /api/route"]
+        D{"关键词保险丝<br/>MAX(level),多词命中永远取最高"}
+        E["AI 语义复检<br/>只复检 LOW · 超时/异常 fail-open 回规则"]
+        H["POST /api/help-summary<br/>AI 求助单改写 · 输出过四道安全闸"]
+    end
+
+    subgraph gmi["⚡ GMI Cloud Inference Engine"]
+        G["deepseek-ai/DeepSeek-V4-Flash<br/>api.gmi-serving.com · OpenAI 兼容接口"]
+    end
+
+    B --> C
+    C --> D
+    D -->|"medium / high / critical"| F["/risk-alert 风险提醒页<br/>先停下来 + 家人求助卡"]
+    D -->|"low"| E
+    E -->|"chat completions"| G
+    E -->|"keep"| T["/confirm 确认页 → 分步教程<br/>一次只教一步"]
+    E -->|"escalate:AI 抓住关键词漏网的语义风险"| F
+    F -.->|"页面先用模板秒开,再异步升级文案"| H
+    H -->|"chat completions"| G
+
+    classDef gmiStyle fill:#f5e642,stroke:#b8a800,stroke-width:3px,color:#1a1a1a
+    classDef dangerStyle fill:#fee2e2,stroke:#dc2626,stroke-width:2px,color:#1a1a1a
+    classDef safeStyle fill:#dbeafe,stroke:#2563eb,stroke-width:2px,color:#1a1a1a
+    classDef fuseStyle fill:#ffedd5,stroke:#ea580c,stroke-width:2px,color:#1a1a1a
+    class G gmiStyle
+    class F dangerStyle
+    class T safeStyle
+    class D fuseStyle
+```
+
+**读图要点**:关键词保险丝(橙)是安全主防线,AI 永远不能把它判定的风险降级;GMI Cloud Inference Engine(黄)在两个位置介入 —— 复检规则漏网的语义风险(只升不降),以及把老人的模糊表达改写成家人能看懂的求助单。AI 任何一环失败,产品都会回退到规则与模板,Demo 不依赖 AI 也能完整跑通。
+
+### GMI Cloud Inference Engine 接入
+
+本项目的推理能力由 **GMI Cloud Inference Engine** 提供(OpenAI 兼容接口,零 SDK 依赖,原生 `fetch` 直连):
+
+| 接入点 | 代码位置 | AI 做什么 | 失败时 |
+|---|---|---|---|
+| ① 风险语义复检 | `src/lib/ai/risk-recheck.ts` | 对关键词判为"低风险"的输入做二次语义嗅探,抓"冒充亲属要钱"这类无风险词命中的诈骗 | fail-open 回关键词结果 |
+| ② 家人求助单改写 | `src/lib/ai/help-summary.ts` | 把老人原话改写成子女一眼能懂的第一人称求助说明 | 回退到模板文案 |
+
+```text
+endpoint : https://api.gmi-serving.com/v1/chat/completions
+model    : deepseek-ai/DeepSeek-V4-Flash(温度 0.1,强制 JSON 输出)
+配置     : .env.local(见 .env.example),key 仅存在于服务端
+```
+
+一条真实的审计日志(关键词全部漏网、GMI 复检抓住的案例):
+
+```text
+输入:「闺女发消息让我给她同学打五千块应急」
+关键词保险丝: low(0 个风险词命中)
+GMI AI 复检: escalate ← "收到要求转账的请求,需核实身份防诈骗"
+最终路由:   /risk-alert(4.3s)
+```
+
+安全设计:AI 输出必须通过严格 JSON 校验;求助单文案额外过"长度窗口 → 禁链接 → 禁『教给出去』话术"三道闸,任一不过即回退模板;所有调用带超时、进程内限流、日预算与匿名审计日志(只记 hash 与长度,不记原文)。
+
 ### 技术栈
 
 | 层级 | 技术 | 用途 |
@@ -62,7 +129,7 @@ EasyPhone AI 的核心不是“替老人操作手机”，而是做一个有安�
 | 语音播报 | SpeechSynthesis | 每个步骤可“念给我听” |
 | 风险判断 | 本地关键词规则 + MAX(level) 安全保险丝 | 多关键词命中时永远取最高风险等级 |
 | 教程内容 | 白名单教程库 | 只对已验证低风险场景输出步骤，避免 AI 乱教 |
-| AI 增强 | 可选 DeepSeek 风险复检层 | 只作为低风险输入的第二道复检，需要 API key；安全主防线仍是规则 |
+| AI 增强 | GMI Cloud Inference Engine(DeepSeek-V4-Flash) | 低风险输入的语义复检 + 家人求助单改写;安全主防线仍是规则,AI 失败时产品完整可用 |
 | 测试 | Node.js `node:test` | 覆盖风险分类、路由、教程、求助卡等核心逻辑 |
 
 ### 核心创意
@@ -91,7 +158,7 @@ EasyPhone AI 的核心不是“替老人操作手机”，而是做一个有安�
 | M2 首页与输入流程 | 已完成 | 支持文字输入、语音输入、Demo 入口 |
 | M3 低风险分步指导 | 已完成 | 微信没声音、字体太小等场景可逐步指导 |
 | M4 高风险中断 + 家人求助卡 | 已完成 | 验证码、屏幕共享等高风险输入直接进入提醒页 |
-| M5 AI 风险复检 | 部分完成 / 可选启用 | 已有服务端 AI 复检层与测试，但公开 Demo 不依赖 API key |
+| M5 AI 接入 | 已完成 | GMI Cloud Inference Engine 双接入点:风险语义复检 + 家人求助单改写;fail-open 设计,Demo 不依赖 API key 也能跑通 |
 | M6 Demo 打磨与部署 | 已完成 | 已有 Vercel Demo 与 B 站演示视频 |
 
 本项目当前是可演示 MVP：核心闭环、线上 Demo 和演示视频已经准备好，下一步重点是把真实老人/家属反馈纳入教程库迭代。
@@ -139,6 +206,9 @@ pnpm dev
 ```
 
 打开 <http://localhost:3000>。
+
+启用 AI 增强(可选,不配也能完整跑通):复制 `.env.example` 为 `.env.local`,
+填入 GMI Cloud API key(`DEEPSEEK_API_KEY`)即可,endpoint 与模型名已在样例中给出。
 
 也可以直接访问 Demo 路径：
 
