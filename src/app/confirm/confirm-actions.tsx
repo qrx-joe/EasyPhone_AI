@@ -26,9 +26,11 @@
  */
 
 import { useRouter } from 'next/navigation'
+import { useState } from 'react'
 
 export function ConfirmActions({ text }: { text: string }) {
   const router = useRouter()
+  const [showFamilyHelp, setShowFamilyHelp] = useState(false)
 
   function handleYes() {
     router.push(`/tutorial?text=${encodeURIComponent(text)}`)
@@ -45,15 +47,34 @@ export function ConfirmActions({ text }: { text: string }) {
         onClick={handleYes}
         className="w-full min-h-[72px] px-6 py-4 rounded-2xl bg-(--color-primary) hover:bg-(--color-primary-hover) active:scale-[0.98] transition text-white text-2xl font-semibold shadow-sm"
       >
-        ✓ 是的,继续
+        是的
       </button>
       <button
         type="button"
         onClick={handleNo}
         className="w-full min-h-[64px] px-6 py-3 rounded-xl bg-(--color-soft) hover:bg-(--color-soft-hover) active:scale-[0.99] transition text-(--color-foreground) text-xl font-medium border border-(--color-border)"
       >
-        ✗ 不是,重新说
+        不是,重新说
       </button>
+      <button
+        type="button"
+        onClick={() => setShowFamilyHelp((v) => !v)}
+        className="w-full min-h-[64px] px-6 py-3 rounded-xl bg-(--color-soft) hover:bg-(--color-soft-hover) active:scale-[0.99] transition text-(--color-foreground) text-xl font-medium border border-(--color-border)"
+        aria-expanded={showFamilyHelp}
+      >
+        让家人看看
+      </button>
+
+      {showFamilyHelp && (
+        <section className="w-full px-6 py-5 rounded-xl bg-white border-2 border-(--color-border)">
+          <p className="text-lg font-semibold text-(--color-foreground) mb-3">
+            可以把这句话给家人看
+          </p>
+          <p className="text-xl leading-relaxed text-(--color-foreground)">
+            我刚才说的是:「{text}」。你有空帮我确认一下是不是这个问题。
+          </p>
+        </section>
+      )}
     </section>
   )
 }

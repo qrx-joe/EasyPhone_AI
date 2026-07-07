@@ -47,19 +47,25 @@
 import { useRouter } from 'next/navigation'
 import { useRef, useState } from 'react'
 
+import { Companion } from '@/components/companion/companion'
 import { routeWithFallback } from '@/lib/ai/client-route'
 import { VoiceInputButton } from '@/lib/speech/voice-input-button'
 
 const DEMO_CASES = [
-  { emoji: '📱', label: '微信没有声音了',     text: '微信没有声音了' },
-  { emoji: '🔍', label: '手机字太小看不清',   text: '手机字太小看不清' },
-  { emoji: '⚠️', label: '收到要验证码的短信', text: '收到一条短信让我输验证码' },
+  { label: '微信没有声音了', text: '微信没有声音了' },
+  { label: '手机字太小看不清', text: '手机字太小看不清' },
+  { label: '银行短信说账户被冻结', text: 'I got a message saying my bank account frozen and I need to click the link' },
+  { label: 'WhatsApp 让开屏幕共享', text: 'Someone on WhatsApp told me to share your screen' },
 ] as const
 
 export default function HomePage() {
   const router = useRouter()
   const [mode, setMode] = useState<'idle' | 'text'>('idle')
   const [textInput, setTextInput] = useState('')
+  const [showFamilyHelp, setShowFamilyHelp] = useState(false)
+  // AI 判断 pending 态:GMI 推理 4~6s,老人必须看到「它在想」而不是死屏。
+  // 精灵切 thinking + 按钮文案变化 = AI 工作的可见反馈(比赛「体现使用」+ 适老 UX)。
+  const [isRouting, setIsRouting] = useState(false)
 
   // 走统一路由函数(安全核心:高风险绝不走 /confirm)
   //
@@ -75,34 +81,71 @@ export default function HomePage() {
     inFlightRef.current?.abort()
     const ctrl = new AbortController()
     inFlightRef.current = ctrl
-    await routeWithFallback(router, text, 'home', { signal: ctrl.signal })
+    setIsRouting(true)
+    try {
+      await routeWithFallback(router, text, 'home', { signal: ctrl.signal })
+    } finally {
+      // 成功时页面即将跳走,复位无感知;失败/降级路径必须复位,否则永久卡「在想」
+      if (!ctrl.signal.aborted) setIsRouting(false)
+    }
   }
 
   return (
-    <main className="flex flex-col items-center min-h-full w-full max-w-2xl mx-auto px-6 py-10 sm:py-16">
-      {/* 标题区 */}
-      <header className="text-center mb-10 sm:mb-14">
+    <main className="flex flex-col items-center min-h-full w-full max-w-2xl mx-auto px-6 py-8 sm:py-14">
+      <header className="text-center mb-8 sm:mb-10">
+        <Companion
+          mood={isRouting ? 'thinking' : 'listening'}
+          caption={isRouting ? '听到了,我帮您看看' : '我在听,您慢慢说'}
+          className="mb-4"
+        />
         <h1 className="text-4xl sm:text-5xl font-bold tracking-tight text-(--color-foreground)">
           爸妈别急
         </h1>
-        <p className="mt-3 text-xl sm:text-2xl text-(--color-muted)">
-          您遇到什么问题?
+        <p className="mt-5 text-3xl sm:text-4xl font-bold leading-snug text-(--color-foreground)">
+          不会弄手机?
+        </p>
+        <p className="mt-2 text-xl sm:text-2xl text-(--color-muted)">
+          海外华人家庭的安全手机教练
         </p>
       </header>
 
-      {/* 主操作区:两个并列大按钮 */}
-      <section className="w-full flex flex-col gap-4 mb-10">
-        <VoiceInputButton />
+      <section className="w-full flex flex-col gap-4 mb-8">
+        <VoiceInputButton onRoutingChange={setIsRouting} />
+
+        <button
+          type="button"
+          onClick={() => setShowFamilyHelp((v) => !v)}
+          className="w-full min-h-[72px] px-6 py-4 rounded-2xl bg-(--color-danger-soft) hover:bg-red-100 active:scale-[0.98] transition text-(--color-danger) text-2xl font-semibold flex items-center justify-center border-2 border-(--color-danger) disabled:opacity-60 disabled:cursor-not-allowed"
+          aria-expanded={showFamilyHelp}
+        >
+          让家人看看
+        </button>
+
+        {showFamilyHelp && (
+          <section
+            className="w-full px-6 py-5 rounded-2xl bg-white border-2 border-(--color-danger)"
+            aria-live="polite"
+          >
+            <p className="text-xl font-semibold text-(--color-danger) mb-3">
+              可以把这句话给家人看
+            </p>
+            <p className="text-2xl leading-relaxed font-bold text-(--color-foreground)">
+              我手机遇到问题了。你有空帮我看一下。
+            </p>
+            <p className="mt-4 text-lg leading-relaxed text-(--color-foreground)">
+              如果对方要验证码、OTP、转账、点链接或开屏幕共享,先不要操作,马上问家人。
+            </p>
+          </section>
+        )}
 
         <button
           type="button"
           onClick={() => setMode(mode === 'text' ? 'idle' : 'text')}
-          className="w-full min-h-[80px] px-6 py-4 rounded-2xl bg-(--color-soft) hover:bg-(--color-soft-hover) active:scale-[0.98] transition text-(--color-foreground) text-2xl font-semibold flex items-center justify-center gap-3 border border-(--color-border)"
+          className="w-full min-h-[56px] px-5 py-3 rounded-xl bg-white hover:bg-(--color-soft) active:scale-[0.98] transition text-(--color-foreground) text-lg font-medium flex items-center justify-center border border-(--color-border)"
           aria-label="打字告诉我您的问题"
           aria-expanded={mode === 'text'}
         >
-          <span aria-hidden className="text-3xl">⌨️</span>
-          打字告诉我
+          不方便说话,打字
         </button>
 
         {/* 文字输入态(展开式,单屏一动作) */}
@@ -111,7 +154,7 @@ export default function HomePage() {
             <textarea
               value={textInput}
               onChange={(e) => setTextInput(e.target.value)}
-              placeholder="比如:微信没有声音了"
+              placeholder="比如:银行短信说账户被冻结"
               rows={3}
               autoFocus
               className="w-full px-5 py-4 text-xl rounded-xl border-2 border-(--color-border) focus:border-(--color-primary) bg-white outline-none resize-none"
@@ -120,28 +163,28 @@ export default function HomePage() {
             <button
               type="button"
               onClick={() => goConfirm(textInput)}
-              disabled={!textInput.trim()}
+              disabled={!textInput.trim() || isRouting}
               className="w-full min-h-[64px] px-6 py-3 rounded-xl bg-(--color-primary) hover:bg-(--color-primary-hover) disabled:bg-(--color-muted) disabled:cursor-not-allowed transition text-white text-xl font-semibold"
+              aria-busy={isRouting}
             >
-              告诉我
+              {isRouting ? '听到了,我帮您看看' : '告诉我'}
             </button>
           </div>
         )}
       </section>
 
-      {/* 常见问题 */}
-      <section className="w-full">
-        <h2 className="text-lg text-(--color-muted) mb-4 px-1">常见问题</h2>
+      <section className="w-full mt-2">
+        <h2 className="text-base text-(--color-muted) mb-3 px-1">也可以点一个常见问题</h2>
         <div className="flex flex-col gap-3">
           {DEMO_CASES.map((c) => (
             <button
               key={c.text}
               type="button"
               onClick={() => goConfirm(c.text)}
-              className="w-full min-h-[64px] px-5 py-3 rounded-xl bg-white hover:bg-(--color-soft) active:scale-[0.99] transition text-left text-xl text-(--color-foreground) border border-(--color-border) flex items-center gap-4"
+              disabled={isRouting}
+              className="w-full min-h-[60px] px-5 py-3 rounded-xl bg-white hover:bg-(--color-soft) active:scale-[0.99] transition text-left text-lg text-(--color-foreground) border border-(--color-border) flex items-center gap-4 disabled:opacity-60 disabled:cursor-not-allowed"
               aria-label={`常见问题:${c.label}`}
             >
-              <span aria-hidden className="text-2xl flex-shrink-0">{c.emoji}</span>
               <span className="flex-1">{c.label}</span>
               <span aria-hidden className="text-(--color-muted)">›</span>
             </button>
@@ -150,8 +193,8 @@ export default function HomePage() {
       </section>
 
       {/* 页脚提示 */}
-      <footer className="mt-auto pt-12 text-center text-base text-(--color-muted)">
-        不会读取您的短信、通讯录或位置
+      <footer className="mt-auto pt-8 text-center text-base text-(--color-muted)">
+        不会读取您的短信、通讯录或位置。遇到 OTP、银行链接、屏幕共享会先停下。
       </footer>
     </main>
   )

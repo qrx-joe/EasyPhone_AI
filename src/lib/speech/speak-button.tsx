@@ -3,7 +3,7 @@
 /**
  * [OPENPRD 文件说明书]
  * ## 核心功能
- * 「🔊 念给我听」按钮 UI:点击切 idle/speaking,unmount 与 text 变化时自动 cancel。
+ * 「念给我听」按钮 UI:点击切 idle/speaking,unmount 与 text 变化时自动 cancel。
  *
  * ## 输入
  * props{text, options?, className?, label?};options 透传到 speak(除 text/onEnd/onError)。
@@ -20,11 +20,11 @@
  *
  * ## 维护规则
  * 改 cancel 清理逻辑要 e2e 验「切步骤还在念旧的」场景;
- * 改 label 默认值要保持 emoji + 中文(适老化一致)。
+ * 改 label 默认值要保持短句中文,主标签不依赖 emoji 或图标。
  */
 
 /**
- * 「🔊 念给我听」按钮 —— 调一次 speak() 念指定文本。
+ * 「念给我听」按钮 —— 调一次 speak() 念指定文本。
  *
  * 状态机:
  *   idle      —— 没在念
@@ -53,7 +53,7 @@ interface Props {
   options?: Omit<SpeakOptions, 'text' | 'onEnd' | 'onError'>
   /** 自定义样式 className,留出来给父组件调适老化(默认 min-h-64,text-xl) */
   className?: string
-  /** 自定义按钮文本(默认「🔊 念给我听」) */
+  /** 自定义按钮文本(默认「念给我听」) */
   label?: string
 }
 
@@ -61,7 +61,7 @@ export function SpeakButton({
   text,
   options,
   className,
-  label = '🔊 念给我听',
+  label = '念给我听',
 }: Props) {
   const [speaking, setSpeaking] = useState(false)
   const [unsupported, setUnsupported] = useState(false)
@@ -138,7 +138,7 @@ export function SpeakButton({
       aria-label={speaking ? '停止念' : '念给我听'}
       aria-pressed={speaking}
     >
-      {speaking ? '⏹ 停下来' : label}
+      {speaking ? '停下来' : label}
     </button>
   )
 }

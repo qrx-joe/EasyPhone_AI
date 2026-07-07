@@ -268,6 +268,41 @@ const CHECKS = [
     expectJson: (data) =>
       typeof data === 'object' && data !== null && typeof data.error === 'string',
   },
+
+  // ====== M5 形态 ③ /api/help-summary 契约 ======
+  // 200 契约:summary 是 string(AI 成功)或 null(fail-open),两者都合法。
+  // 注意:这条会真调一次 GMI(有 key 时);无 key / 限流 / 超时都走 null,断言不挂。
+  {
+    url: '/api/help-summary',
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json; charset=utf-8' },
+    body: JSON.stringify({ text: '短信说医保卡不能用了,让我点链接输验证码', level: 'high' }),
+    expectStatus: 200,
+    expectJson: (data) =>
+      typeof data === 'object' &&
+      data !== null &&
+      (typeof data.summary === 'string' || data.summary === null),
+  },
+  // 400 契约:text 缺失
+  {
+    url: '/api/help-summary',
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json; charset=utf-8' },
+    body: JSON.stringify({ level: 'high' }),
+    expectStatus: 400,
+    expectJson: (data) =>
+      typeof data === 'object' && data !== null && typeof data.error === 'string',
+  },
+  // 400 契约:level 非法(只收 high / critical)
+  {
+    url: '/api/help-summary',
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json; charset=utf-8' },
+    body: JSON.stringify({ text: '短信让我输验证码', level: 'low' }),
+    expectStatus: 400,
+    expectJson: (data) =>
+      typeof data === 'object' && data !== null && typeof data.error === 'string',
+  },
 ]
 
 let passed = 0
