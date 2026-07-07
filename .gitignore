@@ -92,3 +92,15 @@ xiaoan-coach-mascot-v1.png
 
 # Skills 锁文件(本仓库不锁 skills 版本)
 skills-lock.json
+
+# 多 agent 适配器目录(与 .codex/.cursor 同类,本地保留)
+.agents/
+
+# 用户级插件 skills(非项目自带;openprd-* 仍入库)
+.claude/skills/find-skills/
+.claude/skills/lark-doc/
+.claude/skills/lark-shared/
+
+# 本地设计稿/参考图(方案稿未落地;正式资产走 public/brand 或 docs/basic)
+design-preview.html
+docs/640 (6).jpg

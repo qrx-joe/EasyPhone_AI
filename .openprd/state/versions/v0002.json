@@ -1,0 +1,182 @@
+{
+  "versionNumber": 2,
+  "versionId": "v0002",
+  "createdAt": "2026-07-06 23:09:01",
+  "projectRoot": "D:\\code\\EasyPhone_AI",
+  "workspaceRoot": "D:\\code\\EasyPhone_AI\\.openprd",
+  "schema": "prd-core",
+  "templatePack": "consumer",
+  "productType": "consumer",
+  "title": "EasyPhone AI 海外市场改造 + GMI 赛道参赛材料",
+  "owner": "qrx-joe",
+  "status": "synthesized",
+  "sections": {
+    "meta": {
+      "title": "EasyPhone AI 海外市场改造 + GMI 赛道参赛材料",
+      "owner": "qrx-joe",
+      "status": "clarifying",
+      "version": "v0002",
+      "productType": "consumer",
+      "date": "2026-07-06"
+    },
+    "problem": {
+      "problemStatement": "现有 Demo 以中国大陆手机场景为主，参加 AI Coding 出海赛道需要：产品侧真实体现海外华人家庭场景（英文诈骗短信、WhatsApp、双语求助卡），技术侧体现多模型路由与工具链编排，并产出完整参赛提交材料（介绍文档、6+ 页面截图、2+ API 调用证明、Demo 视频脚本）。",
+      "whyNow": "赛事提交截止在即（2026-07），评分维度已公布：技术实现与API调用质量30分、海外场景价值25分、产品完成度25分、创新性15分。当前产品单模型单场景，'多模型能力融合深度、模型路由'与'海外市场洞察'两项会明显失分。",
+      "evidence": [
+        "赛事评分表：技术实现与API调用质量 30 分，明确要求多模型能力融合深度、模型路由与工具链编排合理性",
+        "海外场景价值 25 分：要求海外用户痛点精准、真实出海落地价值、场景可落地不泛化",
+        "现有 README 已定位新加坡/马来西亚/北美华人家庭，但代码仅单模型（DeepSeek-V4-Flash）单一路由"
+      ]
+    },
+    "users": {
+      "primaryUsers": [
+        "海外华人中老年人（新加坡/马来西亚/北美）：中文或方言为主，手机系统与银行/政府短信为英文，低识字或不熟悉数字设备",
+        "海外华人家庭子女：异地或跨时区，需要远程理解并处理父母的手机问题与诈骗风险"
+      ],
+      "secondaryUsers": [],
+      "stakeholders": [
+        "赛事评委：按 4 个维度打分，需要完整提交材料与 GMI Cloud API 调用证明",
+        "GMI Cloud：推理引擎提供方，要求作品体现 Inference Engine 的调用"
+      ]
+    },
+    "goals": {
+      "goals": [],
+      "successMetrics": [
+        "多模型路由落地：风险复检用轻量快模型，求助卡改写/翻译用强模型，且路由理由可在文档中讲清",
+        "英文诈骗短信端到端可演示：粘贴英文银行/OTP短信 → 中文解释+风险判断 → 双语求助卡",
+        "参赛文档 9 个问题全部有实证回答，页面截图≥6张、API调用证明≥2张可直接产出"
+      ],
+      "acceptanceGoals": [
+        "pnpm test 全绿，三个安全不变量测试（routing/classify-risk/help-templates）不被破坏",
+        "无 API key 时产品仍完整可用（fail-open 不变量保持）",
+        "英文关键词扩库遵守 docs/07 §11 三道闸流程"
+      ]
+    },
+    "validation": {
+      "community": [],
+      "seedUsers": [],
+      "currentAlternative": null,
+      "manualPath": [],
+      "commitmentSignals": [],
+      "firstValidationStep": "synthesize → review → change → tasks → 实现，完成后产出参赛文档",
+      "defaultAlivePlan": []
+    },
+    "scope": {
+      "inScope": [
+        "多模型路由层：按任务类型（风险复检/求助卡改写/双语翻译）路由到不同 GMI 模型，含降级链",
+        "英文诈骗短信场景：英文风险关键词扩库（OTP/account suspended/screen share 等）+ 中文解释输出",
+        "双语求助卡：求助卡输出中文+英文双版本，便于子女转发当地银行/警方",
+        "海外低风险教程 1-2 个（如 WhatsApp 静音）+ demo 友好的 API 调用审计日志展示",
+        "参赛文档全套：按飞书模板 9 问撰写，含技术架构图、模型调用链路说明、截图清单、Demo 视频脚本"
+      ],
+      "outOfScope": [
+        "真实短信/通讯录读取、远程控制、支付真实操作（项目边界不变）",
+        "英文 UI 全站国际化（本轮只做求助卡双语与英文输入理解，不做界面 i18n）",
+        "家人端独立 App、社区后台",
+        "接入 GMI 以外的第二家推理服务商"
+      ]
+    },
+    "scenarios": {
+      "primaryFlows": [
+        "老人粘贴/朗读英文银行短信 → 英文关键词保险丝命中 → 风险提醒页（中文解释这条英文短信在说什么+为什么危险）→ 双语求助卡",
+        "老人说'闺女让我打钱'（无关键词命中）→ 轻量模型语义复检 escalate → 风险提醒页",
+        "老人问 WhatsApp 没声音 → 低风险 → 确认页 → 分步教程",
+        "求助卡生成 → 强模型改写中文版 + 翻译英文版 → 子女一键复制转发"
+      ],
+      "edgeCases": [
+        "中英混合输入（'这个 message 说我 account 被 suspend 了'）必须能命中英文关键词",
+        "英文关键词大小写、词形变化（suspended/suspend）",
+        "翻译模型失败时求助卡退回纯中文模板，不阻塞主流程"
+      ],
+      "failureModes": [
+        "任一模型调用失败/超时 → 按降级链回退，最终回退到规则+模板，产品完整可用",
+        "AI 永远不能把关键词保险丝判定的风险降级（不变量）",
+        "双语求助卡英文版不得引入'把验证码告诉我'类教给出去话术（四道闸同样适用）"
+      ]
+    },
+    "requirements": {
+      "functional": [
+        "模型路由表：任务类型 → 模型名/温度/超时/降级目标，集中在单一配置文件",
+        "英文风险关键词库：按 docs/07 三道闸新增 OTP、bank account suspended、screen sharing、gift card、IRS/tax 等海外高频诈骗词",
+        "风险提醒页新增'这条短信在说什么'中文解释区块（AI 生成，失败隐藏）",
+        "求助卡双语输出：中文版必有（模板兜底），英文版 AI 生成（失败隐藏英文区块）",
+        "教程库新增 WhatsApp 静音场景（低风险白名单）",
+        "审计日志页/接口：展示脱敏后的模型调用记录（模型名、任务类型、延迟、决策），供截图作 API 调用证明"
+      ],
+      "nonFunctional": [
+        "所有模型调用走 GMI Cloud OpenAI 兼容接口，key server-only",
+        "路由层零外部 SDK，沿用现有 fetch 封装",
+        "现有 in-process 限流与日预算护栏对新调用点同样生效"
+      ],
+      "businessRules": []
+    },
+    "businessGuardrails": {
+      "costDrivers": [
+        "GMI 推理调用：风险复检（每次低风险输入1次）、求助卡改写（每次高风险1次）、英文翻译（每张求助卡1次）"
+      ],
+      "usageLimits": [
+        "沿用 AI_RATE_LIMIT_PER_10MIN=100 与 AI_DAILY_BUDGET=5000，翻译调用计入同一预算"
+      ],
+      "abusePrevention": [
+        "超预算 fail-open 回模板；无新增放大面"
+      ],
+      "monitoringSignals": [
+        "审计日志记录每次调用的模型名/任务/延迟/结果"
+      ],
+      "alertThresholds": [
+        "日预算 80% 时日志告警"
+      ],
+      "stopLossActions": [
+        "ENABLE_AI_RISK_RECHECK=false 一键关停全部 AI 增强"
+      ]
+    },
+    "constraints": {
+      "technical": [
+        "Next.js 16 App Router + TypeScript 严格模式，不用 any",
+        "安全不变量三文件的测试必须保持通过",
+        "buildRouteForInput() 仍是唯一分流点，英文场景不得新增旁路"
+      ],
+      "compliance": [
+        "不记录用户原文，审计日志只存 hash 与长度（现有约束延续到新调用点）"
+      ],
+      "dependencies": [
+        "GMI Cloud Inference Engine 可用的第二个模型（需在 console 确认可用模型列表）"
+      ]
+    },
+    "risks": {
+      "assumptions": [
+        "GMI Cloud 上除 DeepSeek-V4-Flash 外至少还有一个更强的可用模型（如 DeepSeek-V4 / Qwen / Llama 系列）用于改写与翻译",
+        "英文关键词能通过 docs/07 三道闸的真实样本验证（可引用 FTC/Scamwatch 公开诈骗样本）"
+      ],
+      "risks": [
+        "强模型延迟高于 V4-Flash，求助卡异步升级模式需保持'模板秒开、AI 慢补'",
+        "中英混合分词：现有关键词匹配若按包含匹配则风险低，若按词边界需处理大小写与词形"
+      ],
+      "openQuestions": [
+        "GMI console 上实际可用的第二模型名（实现前用 /v1/models 或 console 确认）"
+      ]
+    },
+    "handoff": {
+      "owner": "qrx-joe",
+      "nextStep": "synthesize → review → change → tasks → 实现，完成后产出参赛文档",
+      "targetSystem": "D:\\code\\EasyPhone_AI（Next.js 应用）+ docs/hackathon 参赛材料"
+    },
+    "typeSpecific": {
+      "kind": "consumer",
+      "title": "个人消费者场景专项",
+      "fields": {
+        "persona": null,
+        "segment": null,
+        "journey": null,
+        "activationMetric": null,
+        "retentionMetric": null
+      }
+    }
+  },
+  "reviewPresentation": null,
+  "reviewPresentationMeta": null,
+  "workUnitId": "wu-20260706230901-d1cea6b3",
+  "targetRoot": "D:\\code\\EasyPhone_AI",
+  "content": "# EasyPhone AI 海外市场改造 + GMI 赛道参赛材料\n> 语言规则：默认用简体中文生成 PRD、spec、tasks 和用户可见说明；除 PRD、OpenPrd、OpenSpec、API、SDK、CLI、TypeScript、JSON、HTTP、WebSocket、字段 key、命令名、品牌名、产品名和协议名等必要专有名词外，其余内容优先写成简体中文。\n- 版本: v0002\n- 负责人: qrx-joe\n- 产品场景: 面向个人消费者场景\n- 场景模板: 面向个人消费者场景\n- 状态: synthesized\n- 生成时间: 2026-07-06 23:09:01\n## 元信息\n\n- 标题: EasyPhone AI 海外市场改造 + GMI 赛道参赛材料\n- 负责人: qrx-joe\n- 状态: clarifying\n- 版本: v0002\n- 产品场景: 面向个人消费者场景\n- 日期: 2026-07-06\n\n## 问题\n\n- 问题陈述: 现有 Demo 以中国大陆手机场景为主，参加 AI Coding 出海赛道需要：产品侧真实体现海外华人家庭场景（英文诈骗短信、WhatsApp、双语求助卡），技术侧体现多模型路由与工具链编排，并产出完整参赛提交材料（介绍文档、6+ 页面截图、2+ API 调用证明、Demo 视频脚本）。\n- 为什么是现在: 赛事提交截止在即（2026-07），评分维度已公布：技术实现与API调用质量30分、海外场景价值25分、产品完成度25分、创新性15分。当前产品单模型单场景，'多模型能力融合深度、模型路由'与'海外市场洞察'两项会明显失分。\n- 证据:\n  - 赛事评分表：技术实现与API调用质量 30 分，明确要求多模型能力融合深度、模型路由与工具链编排合理性\n  - 海外场景价值 25 分：要求海外用户痛点精准、真实出海落地价值、场景可落地不泛化\n  - 现有 README 已定位新加坡/马来西亚/北美华人家庭，但代码仅单模型（DeepSeek-V4-Flash）单一路由\n\n## 用户与相关方\n\n- 主要用户:\n  - 海外华人中老年人（新加坡/马来西亚/北美）：中文或方言为主，手机系统与银行/政府短信为英文，低识字或不熟悉数字设备\n  - 海外华人家庭子女：异地或跨时区，需要远程理解并处理父母的手机问题与诈骗风险\n- 次要用户:\n  - 待补充\n- 相关方:\n  - 赛事评委：按 4 个维度打分，需要完整提交材料与 GMI Cloud API 调用证明\n  - GMI Cloud：推理引擎提供方，要求作品体现 Inference Engine 的调用\n\n## 目标与成功标准\n\n- 目标:\n  - 待补充\n- 成功指标:\n  - 多模型路由落地：风险复检用轻量快模型，求助卡改写/翻译用强模型，且路由理由可在文档中讲清\n  - 英文诈骗短信端到端可演示：粘贴英文银行/OTP短信 → 中文解释+风险判断 → 双语求助卡\n  - 参赛文档 9 个问题全部有实证回答，页面截图≥6张、API调用证明≥2张可直接产出\n- 验收目标:\n  - pnpm test 全绿，三个安全不变量测试（routing/classify-risk/help-templates）不被破坏\n  - 无 API key 时产品仍完整可用（fail-open 不变量保持）\n  - 英文关键词扩库遵守 docs/07 §11 三道闸流程\n\n## 验证与创业闭环\n\n- 可触达社区:\n  - 待补充\n- 第一批种子用户:\n  - 待补充\n- 当前替代方案: 待补充\n- 手工交付路径:\n  - 待补充\n- 承诺信号:\n  - 待补充\n- 首个低成本验证: synthesize → review → change → tasks → 实现，完成后产出参赛文档\n- 先活下来方案:\n  - 待补充\n\n## 范围与非目标\n\n- 范围内:\n  - 多模型路由层：按任务类型（风险复检/求助卡改写/双语翻译）路由到不同 GMI 模型，含降级链\n  - 英文诈骗短信场景：英文风险关键词扩库（OTP/account suspended/screen share 等）+ 中文解释输出\n  - 双语求助卡：求助卡输出中文+英文双版本，便于子女转发当地银行/警方\n  - 海外低风险教程 1-2 个（如 WhatsApp 静音）+ demo 友好的 API 调用审计日志展示\n  - 参赛文档全套：按飞书模板 9 问撰写，含技术架构图、模型调用链路说明、截图清单、Demo 视频脚本\n- 范围外:\n  - 真实短信/通讯录读取、远程控制、支付真实操作（项目边界不变）\n  - 英文 UI 全站国际化（本轮只做求助卡双语与英文输入理解，不做界面 i18n）\n  - 家人端独立 App、社区后台\n  - 接入 GMI 以外的第二家推理服务商\n\n## 场景与流程\n\n- 主流程:\n  - 老人粘贴/朗读英文银行短信 → 英文关键词保险丝命中 → 风险提醒页（中文解释这条英文短信在说什么+为什么危险）→ 双语求助卡\n  - 老人说'闺女让我打钱'（无关键词命中）→ 轻量模型语义复检 escalate → 风险提醒页\n  - 老人问 WhatsApp 没声音 → 低风险 → 确认页 → 分步教程\n  - 求助卡生成 → 强模型改写中文版 + 翻译英文版 → 子女一键复制转发\n- 边界情况:\n  - 中英混合输入（'这个 message 说我 account 被 suspend 了'）必须能命中英文关键词\n  - 英文关键词大小写、词形变化（suspended/suspend）\n  - 翻译模型失败时求助卡退回纯中文模板，不阻塞主流程\n- 失败模式:\n  - 任一模型调用失败/超时 → 按降级链回退，最终回退到规则+模板，产品完整可用\n  - AI 永远不能把关键词保险丝判定的风险降级（不变量）\n  - 双语求助卡英文版不得引入'把验证码告诉我'类教给出去话术（四道闸同样适用）\n\n## 可视化图表\n\n### 产品流程\n\n```mermaid\nflowchart LR\n  entry[\"入口触发<br/>老人粘贴/朗读英文银行短信 → 英文关键词保险丝命中 → 风险提醒页（中文解释这条英文短信在说什么+为什么危险）→ 双语求助卡\"]\n  experience[\"产品内步骤<br/>老人说'闺女让我打钱'（无关键词命中）→ 轻量模型语义复检 escalate → 风险提醒页\"]\n  decision{\"决策点<br/>中英混合输入（'这个 message 说我 account 被 suspend 了'）必须能命中英文关键词\"}\n  success([\"成功结果<br/>多模型路由落地：风险复检用轻量快模型，求助卡改写/翻译用强模型，且路由理由可在文档中讲清\"])\n  failure[[\"失败与恢复<br/>任一模型调用失败/超时 → 按降级链回退，最终回退到规则+模板，产品完整可用\"]]\n  entry -->|\"老人粘贴/朗读英文银行短信 → 英文关键词保险丝命中 → 风险提醒页（中文解释这条…\"| experience\n  experience -->|\"老人说'闺女让我打钱'（无关键词命中）→ 轻量模型语义复检 escalate → …\"| decision\n  decision -->|\"目标仍需确认\"| success\n  decision -.->|\"任一模型调用失败/超时 → 按降级链回退，最终回退到规则+模板，产品完整可用\"| failure\n```\n\n### 架构\n\n```mermaid\nflowchart LR\n  users[\"主要用户<br/>海外华人中老年人（新加坡/马来西亚/北美）：中文或方言为主，手机系统与银行/政府短信为英文，低识字或不熟悉数字设备 · 海外华…\"]\n  subgraph solution[\"方案边界\"]\n    experience[\"个人消费者场景层<br/>老人粘贴/朗读英文银行短信 → 英文关键词保险丝命中 → 风险提醒页（中文解释这条英文短信在说什么+为什么危险）→ 双语求助卡…\"]\n    core[\"核心产品逻辑<br/>现有 Demo 以中国大陆手机场景为主，参加 AI Coding 出海赛道需要：产品侧真实体现海外华人家庭场景（英文诈骗短信、…\"]\n    integrations[\"依赖与集成<br/>GMI Cloud Inference Engine 可用的第二个模型（需在 console 确认可用模型列表）\"]\n    governance[[\"约束与可靠性<br/>不记录用户原文，审计日志只存 hash 与长度（现有约束延续到新调用点）\"]]\n    delivery[\"验证与交接<br/>多模型路由落地：风险复检用轻量快模型，求助卡改写/翻译用强模型，且路由理由可在文档中讲清 · 英文诈骗短信端到端可演示：粘贴英…\"]\n  end\n  users -->|\"老人粘贴/朗读英文银行短信 → 英文关键词保险丝命中 → 风险提醒页（中文解释…\"| experience\n  experience -->|\"产品动作与编排\"| core\n  core -->|\"依赖与外部服务\"| integrations\n  core -.->|\"策略、可靠性与合规\"| governance\n  core -->|\"成功标准与交接\"| delivery\n  integrations -->|\"运营就绪\"| delivery\n  governance -.->|\"评审与确认\"| delivery\n```\n\n## 需求\n\n- 功能需求:\n  - 模型路由表：任务类型 → 模型名/温度/超时/降级目标，集中在单一配置文件\n  - 英文风险关键词库：按 docs/07 三道闸新增 OTP、bank account suspended、screen sharing、gift card、IRS/tax 等海外高频诈骗词\n  - 风险提醒页新增'这条短信在说什么'中文解释区块（AI 生成，失败隐藏）\n  - 求助卡双语输出：中文版必有（模板兜底），英文版 AI 生成（失败隐藏英文区块）\n  - 教程库新增 WhatsApp 静音场景（低风险白名单）\n  - 审计日志页/接口：展示脱敏后的模型调用记录（模型名、任务类型、延迟、决策），供截图作 API 调用证明\n- 非功能需求:\n  - 所有模型调用走 GMI Cloud OpenAI 兼容接口，key server-only\n  - 路由层零外部 SDK，沿用现有 fetch 封装\n  - 现有 in-process 限流与日预算护栏对新调用点同样生效\n- 业务规则:\n  - 待补充\n\n## 业务护栏\n\n- 成本来源:\n  - GMI 推理调用：风险复检（每次低风险输入1次）、求助卡改写（每次高风险1次）、英文翻译（每张求助卡1次）\n- 额度与限制:\n  - 沿用 AI_RATE_LIMIT_PER_10MIN=100 与 AI_DAILY_BUDGET=5000，翻译调用计入同一预算\n- 滥用防护:\n  - 超预算 fail-open 回模板；无新增放大面\n- 监控信号:\n  - 审计日志记录每次调用的模型名/任务/延迟/结果\n- 报警阈值:\n  - 日预算 80% 时日志告警\n- 止损动作:\n  - ENABLE_AI_RISK_RECHECK=false 一键关停全部 AI 增强\n\n## 约束、依赖与风险\n\n- 技术约束:\n  - Next.js 16 App Router + TypeScript 严格模式，不用 any\n  - 安全不变量三文件的测试必须保持通过\n  - buildRouteForInput() 仍是唯一分流点，英文场景不得新增旁路\n- 合规要求:\n  - 不记录用户原文，审计日志只存 hash 与长度（现有约束延续到新调用点）\n- 依赖:\n  - GMI Cloud Inference Engine 可用的第二个模型（需在 console 确认可用模型列表）\n- 假设:\n  - GMI Cloud 上除 DeepSeek-V4-Flash 外至少还有一个更强的可用模型（如 DeepSeek-V4 / Qwen / Llama 系列）用于改写与翻译\n  - 英文关键词能通过 docs/07 三道闸的真实样本验证（可引用 FTC/Scamwatch 公开诈骗样本）\n- 风险:\n  - 强模型延迟高于 V4-Flash，求助卡异步升级模式需保持'模板秒开、AI 慢补'\n  - 中英混合分词：现有关键词匹配若按包含匹配则风险低，若按词边界需处理大小写与词形\n- 开放问题:\n  - GMI console 上实际可用的第二模型名（实现前用 /v1/models 或 console 确认）\n\n## 类型专项模块\n\n- 类型: 个人消费者场景专项\n- persona: 待补充\n- segment: 待补充\n- journey: 待补充\n- activationMetric: 待补充\n- retentionMetric: 待补充\n\n## 交接\n\n- 负责人: qrx-joe\n- 下一步: synthesize → review → change → tasks → 实现，完成后产出参赛文档\n- 目标系统: D:\\code\\EasyPhone_AI（Next.js 应用）+ docs/hackathon 参赛材料\n",
+  "digest": "c5a4447a065ad694093d6fec3da42ca08640a5fa855f18f1172992e32cd2e2f6"
+}
