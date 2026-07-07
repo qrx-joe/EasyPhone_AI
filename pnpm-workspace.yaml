@@ -1,3 +1,6 @@
+allowBuilds:
+  sharp: set this to true or false
+
 ignoredBuiltDependencies:
   - sharp
   - unrs-resolver
@@ -5,6 +8,7 @@ ignoredBuiltDependencies:
 supportedArchitectures:
   os:
     - linux
+    - win32
   cpu:
     - x64
   libc:

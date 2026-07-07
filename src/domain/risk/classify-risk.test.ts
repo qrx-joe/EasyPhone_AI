@@ -157,6 +157,48 @@ describe('输入归一化', () => {
 })
 
 // ─────────────────────────────────────────────────────────────────────
+// 海外华人家庭 / 英文诈骗话术:锁住出海 Demo 的高置信风险词
+// ─────────────────────────────────────────────────────────────────────
+
+describe('overseas scam phrases for Chinese diaspora families', () => {
+  const overseasCases: Case[] = [
+    {
+      input: 'I got a message saying my bank account frozen and I need to click the link',
+      expected: 'high',
+      expectKeyword: 'account frozen',
+    },
+    {
+      input: 'A bank officer asked me for the OTP',
+      expected: 'critical',
+      expectKeyword: 'otp',
+    },
+    {
+      input: 'Someone on WhatsApp told me to share your screen',
+      expected: 'critical',
+      expectKeyword: 'share your screen',
+    },
+    {
+      input: 'An immigration officer asked for my verification code',
+      expected: 'critical',
+      expectKeyword: 'verification code',
+    },
+  ]
+
+  for (const { input, expected, expectKeyword } of overseasCases) {
+    test(`「${input}」 -> ${expected}`, () => {
+      const result = classifyRiskByRules(input)
+      assert.equal(result.level, expected)
+      if (expectKeyword) {
+        assert.ok(
+          result.matchedKeywords.includes(expectKeyword),
+          `期望命中「${expectKeyword}」,实际命中=[${result.matchedKeywords.join(', ')}]`,
+        )
+      }
+    })
+  }
+})
+
+// ─────────────────────────────────────────────────────────────────────
 // shouldStopGuidance 行为:只在 high / critical 停
 // ─────────────────────────────────────────────────────────────────────
 

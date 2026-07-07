@@ -93,11 +93,11 @@ export function VoiceInputButton({ onRoutingChange }: VoiceInputButtonProps = {}
     ? isUnavailable
       ? '语音暂时用不了'
       : '再点一次说问题'
-    : '点一下说问题'
+    : '点这里说问题'
   const buttonLabel = isListening
-    ? '正在听,点一下停'
+    ? '我在听,慢慢说'
     : isRouting
-      ? '听到了,正在帮您想…'
+      ? '听到了,我帮您看看'
       : idleLabel
 
   return (
@@ -108,14 +108,14 @@ export function VoiceInputButton({ onRoutingChange }: VoiceInputButtonProps = {}
         disabled={isRouting}
         className={
           isListening
-            ? 'w-full min-h-[80px] px-6 py-4 rounded-2xl bg-(--color-danger) text-white text-2xl font-semibold flex flex-col items-center justify-center gap-1 shadow-md animate-pulse'
+            ? 'w-full min-h-[112px] px-6 py-5 rounded-2xl bg-(--color-danger) text-white text-3xl font-bold flex flex-col items-center justify-center gap-2 shadow-md animate-pulse'
             : isRouting
-              ? 'w-full min-h-[80px] px-6 py-4 rounded-2xl bg-(--color-primary-soft) text-(--color-primary) text-2xl font-semibold flex flex-col items-center justify-center gap-1 border-2 border-(--color-primary) cursor-wait'
+              ? 'w-full min-h-[112px] px-6 py-5 rounded-2xl bg-(--color-primary-soft) text-(--color-primary) text-3xl font-bold flex flex-col items-center justify-center gap-2 border-2 border-(--color-primary) cursor-wait'
               : isUnavailable
-                ? 'w-full min-h-[80px] px-6 py-4 rounded-2xl bg-(--color-soft) hover:bg-(--color-soft-hover) active:scale-[0.98] transition text-(--color-foreground) text-2xl font-semibold flex flex-col items-center justify-center gap-1 border-2 border-(--color-border)'
-                : 'w-full min-h-[80px] px-6 py-4 rounded-2xl bg-(--color-primary) hover:bg-(--color-primary-hover) active:scale-[0.98] transition text-white text-2xl font-semibold flex flex-col items-center justify-center gap-1 shadow-sm'
+                ? 'w-full min-h-[112px] px-6 py-5 rounded-2xl bg-(--color-soft) hover:bg-(--color-soft-hover) active:scale-[0.98] transition text-(--color-foreground) text-3xl font-bold flex flex-col items-center justify-center gap-2 border-2 border-(--color-border)'
+                : 'w-full min-h-[112px] px-6 py-5 rounded-2xl bg-(--color-primary) hover:bg-(--color-primary-hover) active:scale-[0.98] transition text-white text-3xl font-bold flex flex-col items-center justify-center gap-2 shadow-sm'
         }
-        aria-label={isListening ? '正在听,点一下停止' : buttonLabel}
+        aria-label={isListening ? '我在听,再点一下停止' : buttonLabel}
         aria-pressed={isListening}
         aria-busy={isRouting}
       >
@@ -140,8 +140,8 @@ export function VoiceInputButton({ onRoutingChange }: VoiceInputButtonProps = {}
           className="w-full px-5 py-4 rounded-xl bg-white border-2 border-(--color-primary) text-left"
           aria-live="polite"
         >
-          <p className="text-base text-(--color-muted) mb-1">我听到的是:</p>
-          <p className="text-xl text-(--color-foreground) min-h-[1.5em] break-words">
+          <p className="text-base text-(--color-muted) mb-1">我听到的是</p>
+          <p className="text-2xl text-(--color-foreground) min-h-[1.5em] break-words">
             {transcript || '...'}
           </p>
         </div>

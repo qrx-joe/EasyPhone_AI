@@ -1,10 +1,10 @@
 ﻿# EasyPhone AI PRD
 
-> Chinese Subtitle: 爸妈别急  
-> Version: v1.0  
-> Project Type: AI Voice Phone Coach for Low-Literacy Seniors  
-> Target Event: UCWS Singapore 2026 Hackathon  
-> Recommended Track: Agent / Application  
+> Chinese Subtitle: 爸妈别急
+> Version: v1.0
+> Project Type: AI Safety Phone Coach for Overseas Chinese Seniors
+> Target Event: UCWS Singapore 2026 Hackathon
+> Recommended Track: Agent / Application
 
 ---
 
@@ -20,17 +20,17 @@ Chinese subtitle:
 
 ### 1.2 One-Line Pitch
 
-**EasyPhone AI is an AI voice phone coach for low-literacy seniors. It guides safe phone tasks step by step, and stops risky actions such as verification codes, transfers, unknown links, and screen sharing before scams happen.**
+**EasyPhone AI is an AI safety phone coach for overseas Chinese seniors. It guides safe phone tasks step by step, and stops risky actions such as OTPs, bank links, transfers, unknown WhatsApp messages, and screen sharing before scams happen.**
 
 中文一句话：
 
-**EasyPhone AI / 爸妈别急，是一个给低识字中老年人的 AI 语音手机教练：普通问题一步一步教，遇到验证码、转账、陌生链接和屏幕共享，先停下来，找家人确认。**
+**EasyPhone AI / 爸妈别急，是一个面向海外华人家庭的 AI 安全手机教练：普通问题一步一步教，遇到 OTP/验证码、银行链接、转账、陌生 WhatsApp 和屏幕共享，先停下来，找家人确认。**
 
 ### 1.3 Product Positioning
 
 EasyPhone AI is not a general chatbot, not a tutorial app, and not a remote-control tool.
 
-It is a **voice-first, safety-aware AI assistant** designed for elderly users who struggle with smartphone usage.
+It is a **voice-first, safety-aware AI assistant** designed for overseas Chinese seniors who struggle with smartphone usage, mixed Chinese-English scam messages, and remote family support.
 
 It helps seniors:
 
@@ -56,7 +56,7 @@ For high-risk tasks, it stops immediately and asks the user to confirm with fami
 
 Smartphones have become the entrance to daily life: messaging, payment, healthcare, travel, banking alerts, video calls, government services, and family communication.
 
-However, for low-literacy or digitally inexperienced seniors, smartphones are often stressful and risky.
+However, for overseas Chinese seniors with limited English or limited digital literacy, smartphones are often stressful and risky. A bank SMS, government notice, delivery link, or WhatsApp message may mix English and Chinese, while their adult children may live in another city, country, or time zone.
 
 They may not know:
 
@@ -67,6 +67,7 @@ They may not know:
 - whether a message is real or fraudulent;
 - whether they should enter a verification code;
 - whether screen sharing or remote control is dangerous.
+- whether an English "account frozen" or "OTP required" message is legitimate.
 
 At the same time, adult children often become the family’s remote tech support. But phone calls are inefficient because seniors may say things like:
 
@@ -90,6 +91,17 @@ The child often cannot understand the exact problem, and the senior may already 
 | Input Preference | Voice-first, not typing |
 | Typical Problems | WeChat has no sound, font too small, phone storage full, suspicious SMS, verification code requests |
 | Core Need | Someone to explain slowly, step by step, and stop them before dangerous actions |
+
+### 3.1a Overseas Market Focus
+
+The first overseas market focus is **Chinese diaspora families in Singapore, Malaysia, and North America**.
+
+These families share a specific pattern:
+
+- parents may prefer Chinese, dialects, or mixed Chinese-English speech;
+- phone systems, bank messages, delivery notices, immigration/government notices, and scam messages often appear in English;
+- adult children are the real remote tech support layer, but may not be physically nearby;
+- scam risk is not only "lack of knowledge", but a delay in asking the right family member before acting.
 
 ### 3.2 Secondary User: Adult Children
 
@@ -524,7 +536,7 @@ Voice question
 → voice playback
 ```
 
-### 9.3 Scenario 3: Medical Insurance Scam / Verification Code
+### 9.3 Scenario 3: Overseas Bank SMS / OTP / WhatsApp Screen Sharing
 
 Goal:
 
@@ -541,6 +553,12 @@ Voice question
 ```
 
 This should be the key moment of the demo.
+
+Example inputs:
+
+- "I got a message saying my bank account frozen and I need to click the link."
+- "A bank officer asked me for the OTP."
+- "Someone on WhatsApp told me to share your screen."
 
 ---
 

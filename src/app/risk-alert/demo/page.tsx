@@ -5,7 +5,7 @@
  *
  * ## 输入
  * URL searchParams.case —— 白名单 key(medical-sms / public-security /
- * screen-share / apple-id / fake-benefit)。
+ * screen-share / apple-id / fake-benefit / overseas-bank / overseas-whatsapp)。
  *
  * ## 输出
  * 1 次 server redirect(到 /risk-alert 或兜底到 /);不在该页渲染任何 UI。
@@ -41,6 +41,8 @@
  *   - screen-share    → 下载向日葵让我帮你
  *   - apple-id        → 把你的苹果账号和密码告诉我
  *   - fake-benefit    → 恭喜您中奖了,先交个人所得税
+ *   - overseas-bank   → 英文银行账户冻结短信 + 陌生链接
+ *   - overseas-whatsapp → WhatsApp 诱导屏幕共享
  */
 
 import { redirect } from 'next/navigation'
@@ -53,6 +55,8 @@ const RISK_DEMO_CASES: Record<string, string> = {
   'screen-share': '下载向日葵让我帮你',
   'apple-id': '把你的苹果账号和密码告诉我',
   'fake-benefit': '恭喜您中奖了,先交个人所得税',
+  'overseas-bank': 'I got a message saying my bank account frozen and I need to click the link',
+  'overseas-whatsapp': 'Someone on WhatsApp told me to share your screen',
 }
 
 interface PageProps {

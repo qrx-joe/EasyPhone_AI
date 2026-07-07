@@ -57,6 +57,8 @@ export const RISK_RECHECK_SYSTEM_PROMPT = `你是"爸妈别急"App 的最后一�
 - 任何"贷款要先交钱"的场景
 - 任何"约见面/上门服务"对独居老人是高风险的场景
 - 假冒"安全账户""国家账户"让老人转出存款
+- 海外华人家庭场景:假冒 bank officer / government officer / immigration officer
+- 英文或中英混合话术里的 OTP、verification code、account frozen、screen sharing、WhatsApp link
 
 【不要做的事】
 - 不要因为输入简短就认为安全

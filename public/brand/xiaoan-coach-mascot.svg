@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024" role="img" aria-labelledby="title desc">
+  <title id="title">小安教练 Mascot</title>
+  <desc id="desc">A warm safety phone coach mascot for EasyPhone AI, raising one hand to say stop and help seniors use phones safely.</desc>
+  <defs>
+    <linearGradient id="bg" x1="162" y1="116" x2="860" y2="906" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#FFF8D7"/>
+      <stop offset="0.52" stop-color="#BFE9D7"/>
+      <stop offset="1" stop-color="#86BFFF"/>
+    </linearGradient>
+    <linearGradient id="body" x1="292" y1="172" x2="720" y2="870" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#FFFFFF"/>
+      <stop offset="1" stop-color="#EAF7F2"/>
+    </linearGradient>
+    <linearGradient id="screen" x1="350" y1="250" x2="668" y2="722" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#EAF8FF"/>
+      <stop offset="1" stop-color="#F8FFFB"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="24" stdDeviation="26" flood-color="#102437" flood-opacity="0.18"/>
+    </filter>
+  </defs>
+
+  <rect width="1024" height="1024" rx="224" fill="url(#bg)"/>
+  <circle cx="220" cy="226" r="82" fill="#FFFFFF" opacity="0.34"/>
+  <circle cx="810" cy="796" r="126" fill="#FFFFFF" opacity="0.25"/>
+
+  <g filter="url(#shadow)">
+    <rect x="308" y="166" width="408" height="706" rx="116" fill="url(#body)"/>
+    <rect x="354" y="230" width="316" height="536" rx="66" fill="url(#screen)" stroke="#D8E7EA" stroke-width="10"/>
+    <rect x="456" y="190" width="112" height="18" rx="9" fill="#9FB5BD"/>
+  </g>
+
+  <path d="M396 520c24 80 80 124 116 124s92-44 116-124" fill="none" stroke="#102437" stroke-width="24" stroke-linecap="round"/>
+  <circle cx="436" cy="424" r="26" fill="#102437"/>
+  <circle cx="588" cy="424" r="26" fill="#102437"/>
+  <circle cx="444" cy="416" r="8" fill="#FFFFFF"/>
+  <circle cx="596" cy="416" r="8" fill="#FFFFFF"/>
+  <path d="M480 486c18 12 46 12 64 0" fill="none" stroke="#102437" stroke-width="18" stroke-linecap="round"/>
+
+  <path d="M336 578c-74 10-132 54-146 122-7 34 16 66 51 66h74" fill="none" stroke="#102437" stroke-width="36" stroke-linecap="round"/>
+  <path d="M688 578c74 10 132 54 146 122 7 34-16 66-51 66h-74" fill="none" stroke="#102437" stroke-width="36" stroke-linecap="round"/>
+
+  <g>
+    <circle cx="792" cy="300" r="112" fill="#FF6B5F" stroke="#FFFFFF" stroke-width="24"/>
+    <path d="M744 300h96" fill="none" stroke="#FFFFFF" stroke-width="38" stroke-linecap="round"/>
+  </g>
+
+  <g>
+    <path d="M252 362c-35 35-55 84-55 138s20 103 55 138" fill="none" stroke="#102437" stroke-width="30" stroke-linecap="round" opacity="0.62"/>
+    <path d="M294 412c-22 23-34 53-34 88s12 65 34 88" fill="none" stroke="#102437" stroke-width="26" stroke-linecap="round" opacity="0.62"/>
+    <path d="M772 486c26 26 41 63 41 104s-15 78-41 104" fill="none" stroke="#102437" stroke-width="30" stroke-linecap="round" opacity="0.62"/>
+    <path d="M732 532c14 15 22 35 22 58s-8 43-22 58" fill="none" stroke="#102437" stroke-width="26" stroke-linecap="round" opacity="0.62"/>
+  </g>
+
+  <g>
+    <path d="M466 704h92c26 0 48 21 48 48v58H418v-58c0-27 22-48 48-48z" fill="#2F80ED"/>
+    <path d="M512 730l38 28-14 48h-48l-14-48 38-28z" fill="#FFF8D7"/>
+    <path d="M512 754l16 12-6 20h-20l-6-20 16-12z" fill="#FF6B5F"/>
+  </g>
+
+  <g>
+    <rect x="398" y="806" width="228" height="44" rx="22" fill="#102437" opacity="0.88"/>
+    <path d="M444 828h136" fill="none" stroke="#FFFFFF" stroke-width="12" stroke-linecap="round"/>
+  </g>
+</svg>

@@ -3,13 +3,13 @@
 /**
  * [OPENPRD 文件说明书]
  * ## 核心功能
- * 风险提醒页的 client 组件,渲染求助卡 UI、复制到剪贴板、模拟发送与返回首页。
+ * 风险提醒页的 client 组件,渲染停止提醒、求助文字、复制到剪贴板与返回首页。
  *
  * ## 输入
  * props.help(HelpRequest,来自父 server 组件的预打包数据)。
  *
  * ## 输出
- * 三个按钮 click 事件(复制/模拟发送/返回)、剪贴板写入、alert 弹窗;
+ * 按钮 click 事件(复制/演示发送/展开说明/返回)、剪贴板写入、alert 弹窗;
  * 本地状态 copyState(idle/success/error)。
  *
  * ## 定位
@@ -31,12 +31,11 @@
  * 展示内容:
  *   1. 大红色「停」标识 + 标题("先别操作,这可能是诈骗")
  *   2. summary 人话解释
- *   3. 「您刚才说的」段落 —— 展示 question.text + matched keywords
- *      (关键词是给老人自己看的:学到了"原来『验证码』是危险词")
- *   4. 行动建议(suggestions 列表)
- *   5. 三个按钮:
- *      - 「复制这张卡」: 调 Clipboard API 把 serializeHelpCard 写进剪贴板
- *      - 「模拟发给家人」: 弹个 alert 模拟"已发送"反馈(不真发短信/微信)
+ *   3. 第一屏只展示禁止动作 + 求助入口,先打断风险操作。
+ *   4. 展开说明后再展示 question.text、summary 与行动建议。
+ *   5. 操作按钮:
+ *      - 「让家人看看」: 调 Clipboard API 把 serializeHelpCard 写进剪贴板
+ *      - 「演示发送给家人」: 弹个 alert 模拟"已发送"反馈(不真发短信/微信)
  *      - 「返回首页」: 放弃
  *   6. 底部:风险等级 + 产品承诺
  *
@@ -58,6 +57,7 @@ export function RiskAlertClient({ help }: Props) {
   const [copyState, setCopyState] = useState<'idle' | 'success' | 'error'>(
     'idle',
   )
+  const [showDetails, setShowDetails] = useState(false)
   // AI 升级版 summary(形态 ③)。null = 还没有/失败,一律显示模板 summary。
   // 页面**永远**先用模板秒开 —— 「停」不等 AI。
   const [aiSummary, setAiSummary] = useState<string | null>(null)
@@ -125,70 +125,25 @@ export function RiskAlertClient({ help }: Props) {
 
   return (
     <main className="flex flex-col items-center min-h-full w-full max-w-2xl mx-auto px-6 py-8 sm:py-12">
-      {/* 醒目的「停」标识 */}
       <div
-        className="w-32 h-32 rounded-full bg-(--color-danger) text-white flex items-center justify-center text-6xl font-bold mb-6 shadow-md"
+        className="w-36 h-36 rounded-full bg-(--color-danger) text-white flex items-center justify-center text-7xl font-bold mb-6 shadow-md"
         aria-hidden
       >
         停
       </div>
 
-      <h1 className="text-3xl sm:text-4xl font-bold text-(--color-danger) text-center mb-4">
-        先别操作,这可能是诈骗
+      <h1 className="text-4xl sm:text-5xl font-bold text-(--color-danger) text-center mb-5 leading-tight">
+        先别点
       </h1>
 
-      {/* summary 人话解释(AI 升级后原地替换;模板兜底保证永不空白) */}
-      <p className="text-xl text-(--color-foreground) text-center mb-2 leading-relaxed px-2">
-        {displayHelp.summary}
-      </p>
-      {/* AI 状态行:pending 提示在整理;成功后标注来源(评委/家人都能看到 AI 参与) */}
-      <p className="text-sm text-(--color-muted) text-center mb-6" role="status">
-        {aiPending
-          ? 'AI 正在把这件事整理成家人能看懂的说明…'
-          : aiSummary
-            ? '↑ 已由 AI 整理成给家人看的说明'
-            : ''}
-      </p>
-
-      {/* 「您刚才说的」段落 —— 老人自己看,学到了"为什么是危险" */}
-      <section className="w-full mb-6 px-6 py-5 rounded-xl bg-(--color-danger-soft) border-2 border-(--color-danger)">
-        <p className="text-base text-(--color-muted) mb-2">您刚才说到:</p>
-        <p className="text-xl font-medium text-(--color-foreground) break-words mb-3">
-          「{help.question.text}」
-        </p>
-        {help.question.risk.matchedKeywords.length > 0 && (
-          <>
-            <p className="text-base text-(--color-muted) mb-2">
-              其中 {help.question.risk.matchedKeywords.length} 个词属于诈骗
-              高频用词:
-            </p>
-            <ul className="flex flex-wrap gap-2">
-              {help.question.risk.matchedKeywords
-                .slice(0, 8)
-                .map((kw) => (
-                  <li
-                    key={kw}
-                    className="px-3 py-1 bg-white text-(--color-danger) rounded-full text-base font-medium border border-(--color-danger)"
-                  >
-                    {kw}
-                  </li>
-                ))}
-            </ul>
-          </>
-        )}
+      <section className="w-full mb-7 px-6 py-6 rounded-2xl bg-(--color-danger-soft) border-2 border-(--color-danger)">
+        <ul className="text-2xl sm:text-3xl font-bold leading-relaxed text-(--color-foreground) space-y-3">
+          <li>不要转账。</li>
+          <li>不要说验证码。</li>
+          <li>不要点陌生链接。</li>
+        </ul>
       </section>
 
-      {/* 行动指引 */}
-      <section className="w-full mb-8 px-6 py-5 rounded-xl bg-(--color-soft)">
-        <h2 className="text-xl font-semibold mb-3">现在请这样做:</h2>
-        <ol className="text-lg leading-loose list-decimal pl-6 space-y-1">
-          {help.suggestions.map((s, i) => (
-            <li key={i}>{s}</li>
-          ))}
-        </ol>
-      </section>
-
-      {/* 三个动作按钮(适老化:大按钮,大字号,竖排) */}
       <section className="w-full flex flex-col gap-3 mb-6">
         <button
           type="button"
@@ -197,10 +152,10 @@ export function RiskAlertClient({ help }: Props) {
           aria-label="把家人求助卡内容复制到剪贴板"
         >
           {copyState === 'success'
-            ? '✓ 已复制'
+            ? '已经复制好了'
             : copyState === 'error'
-              ? '✗ 复制失败,长按文本框选中'
-              : '📋 复制这张卡'}
+              ? '复制失败,看下面文字'
+              : '让家人看看'}
         </button>
 
         <button
@@ -209,7 +164,16 @@ export function RiskAlertClient({ help }: Props) {
           className="w-full min-h-[64px] px-6 py-3 rounded-xl bg-(--color-soft) hover:bg-(--color-soft-hover) active:scale-[0.99] transition text-(--color-foreground) text-xl font-medium border border-(--color-border)"
           aria-label="模拟把卡片发给家人"
         >
-          📤 模拟发给家人
+          演示发送给家人
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setShowDetails((v) => !v)}
+          className="w-full min-h-[64px] px-6 py-3 rounded-xl bg-(--color-soft) hover:bg-(--color-soft-hover) active:scale-[0.99] transition text-(--color-foreground) text-xl font-medium border border-(--color-border)"
+          aria-expanded={showDetails}
+        >
+          {showDetails ? '收起说明' : '看看原因'}
         </button>
 
         <Link
@@ -220,13 +184,43 @@ export function RiskAlertClient({ help }: Props) {
         </Link>
       </section>
 
+      {showDetails && (
+        <section className="w-full mb-6">
+          <section className="w-full mb-6 px-6 py-5 rounded-xl bg-white border border-(--color-border)">
+            <p className="text-base text-(--color-muted) mb-2">您刚才说到</p>
+            <p className="text-xl font-medium text-(--color-foreground) break-words mb-3">
+              「{help.question.text}」
+            </p>
+            <p className="text-lg text-(--color-foreground) leading-relaxed">
+              {displayHelp.summary}
+            </p>
+            <p className="text-sm text-(--color-muted) mt-3" role="status">
+              {aiPending
+                ? '正在整理给家人看的说明'
+                : aiSummary
+                  ? '已经整理成给家人看的说明'
+                  : ''}
+            </p>
+          </section>
+
+          <section className="w-full mb-6 px-6 py-5 rounded-xl bg-(--color-soft)">
+            <h2 className="text-xl font-semibold mb-3">现在请这样做</h2>
+            <ol className="text-lg leading-loose list-decimal pl-6 space-y-1">
+              {help.suggestions.map((s, i) => (
+                <li key={i}>{s}</li>
+              ))}
+            </ol>
+          </section>
+        </section>
+      )}
+
       {/* 复制成功/失败的视觉反馈(独立提示,即使按钮文字回 idle 也保留一秒) */}
       {copyState === 'success' && (
         <p
           className="text-center text-base text-(--color-primary) mb-4"
           role="status"
         >
-          已复制到剪贴板 —— 现在可以打开微信,长按输入框「粘贴」发给家人
+          已复制。现在可以打开微信,长按输入框,粘贴给家人。
         </p>
       )}
       {copyState === 'error' && (
@@ -238,10 +232,9 @@ export function RiskAlertClient({ help }: Props) {
         </p>
       )}
 
-      {/* 卡片纯文本预览(给老人确认"我看到的就是要发出去的" + 失败时手动复制) */}
       <details className="w-full mb-6 px-4 py-3 rounded-xl bg-white border border-(--color-border)">
         <summary className="text-base text-(--color-muted) cursor-pointer">
-          卡片内容预览(点击展开)
+          给家人的文字
         </summary>
         <pre className="mt-3 text-sm leading-relaxed whitespace-pre-wrap break-words text-(--color-foreground)">
           {serializeHelpCard(displayHelp)}
