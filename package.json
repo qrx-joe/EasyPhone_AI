@@ -4,7 +4,7 @@
   "private": true,
   "packageManager": "pnpm@10.28.0",
   "engines": {
-    "node": ">=20.0.0",
+    "node": "24.x",
     "pnpm": ">=10.28.0"
   },
   "scripts": {
@@ -26,6 +26,7 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "lightningcss-win32-x64-msvc": "1.32.0",
     "tailwindcss": "^4",
     "typescript": "^5"
   },
