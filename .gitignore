@@ -56,3 +56,17 @@ next-env.d.ts
 # 本地评审/构建产物(不入库)
 _pr1_review.diff
 android-apk/
+
+# 本地工具/运行时噪音(纯本地,不入库)
+.pnpm-store/
+.dev-server.log
+.tmp/
+
+# 演示视频剪辑工程(体积大 + 含 node_modules;视频成品走 B 站,源工程不入库)
+demo-video/
+
+# 吉祥物 PNG 设计稿(public/brand/ 已有 SVG 矢量版作为唯一真源,PNG 不入库)
+xiaoan-coach-mascot-v1.png
+
+# Skills 锁文件(本仓库不锁 skills 版本)
+skills-lock.json
