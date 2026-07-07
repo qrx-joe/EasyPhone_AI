@@ -151,7 +151,7 @@
 | 文件 | 关联 |
 |---|---|
 | `src/domain/risk/types.ts` | 导出 `RiskLevel` / `RiskKeyword` / `RiskClassification` / `RISK_RANK` / `shouldStopGuidance`——shared 复用 |
-| `src/domain/risk/EasyPhone_AI_risk_README.md` | 文件夹 README，会自动反映新模块存在 |
+| `src/domain/risk/easy-phone-ai_risk_README.md` | 文件夹 README，会自动反映新模块存在 |
 | 16 个 `classify-risk.test.ts` 测试 | 锁住 `classifyRiskByRules` 行为，re-export 形式不变 → 测试零修改 |
 | 12 个 `user-routing.test.ts` 测试 | 锁住 `buildRouteForInput` 行为，零修改 |
 | 其他 128 个测试 | 跟风险分类无直接关系，零影响 |
