@@ -49,6 +49,28 @@ next-env.d.ts
 .openprd/harness/run-state.json
 .openprd/engagements/
 
+# OpenPrd 会话级运行时状态(每轮对话都变;快照 state/versions/ 与 specs 仍入库)
+.openprd/harness/events.jsonl
+.openprd/harness/iterations.jsonl
+.openprd/harness/hook-state.json
+.openprd/harness/turn-state.json
+.openprd/harness/requirement-gate.json
+.openprd/harness/requirement-gates/
+.openprd/harness/research-gate.json
+.openprd/harness/research-gates/
+.openprd/harness/session-bindings/
+.openprd/harness/session-states/
+.openprd/state/current.json
+.openprd/state/task-graph.json
+.openprd/state/version-index.json
+.openprd/knowledge/index.json
+.openprd/knowledge/candidates/
+.openprd/knowledge/drafts/
+.openprd/knowledge/review-signals.jsonl
+.openprd/growth/
+.openprd/reviews/
+.openprd/design/
+
 # OpenPrd multi-agent adapters (we don't use Codex/Cursor, keep the dirs only locally)
 .codex/
 .cursor/
