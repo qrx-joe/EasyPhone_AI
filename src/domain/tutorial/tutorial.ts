@@ -45,6 +45,19 @@ import type { RiskLevel } from '../risk/types.ts'
 // ─────────────────────────────────────────────────────────────────────
 
 /**
+ * 教程涉及的 App。
+ *
+ * UI 层(src/components/app-icon)按这个字段渲染「App 磁贴图标」——
+ * 老人认 App 靠桌面图标的颜色块(微信=绿方块),不靠文字。
+ * 'system' = 手机系统设置。可选:没有明确 App 归属的教程不填。
+ *
+ * 放领域层的理由:「这个教程是哪个 App 的事」是教程的固有属性,
+ * 跟 title/steps 同源;放 UI 层会让每个页面各自维护映射副本(冗余)。
+ * M5 接 AI 后,AI 生成的教程也走这个字段,UI 不用改。
+ */
+export type TutorialApp = 'wechat' | 'sms' | 'whatsapp' | 'system'
+
+/**
  * 单个教程步骤。
  *
  * - title:       5-10 字,告诉老人「这一步要做什么」。
@@ -74,6 +87,11 @@ export interface Tutorial {
   readonly id: string
   /** 给 UI 渲染的标题,如「让微信声音回来」 */
   readonly title: string
+  /**
+   * 教程涉及的 App(可选)。UI 层按它渲染 App 磁贴图标,
+   * 见 TutorialApp 的 rationale。
+   */
+  readonly app?: TutorialApp
   /**
    * 匹配关键词(小写)。
    *
@@ -139,6 +157,7 @@ export function safeTutorialsFor(level: RiskLevel): readonly Tutorial[] {
 const TUTORIAL_WEIXIN_NO_SOUND: Tutorial = {
   id: 'wechat-no-sound',
   title: '让微信声音回来',
+  app: 'wechat',
   matchKeywords: [
     '微信没有声音',
     '微信没声音',
@@ -190,6 +209,7 @@ const TUTORIAL_WEIXIN_NO_SOUND: Tutorial = {
 const TUTORIAL_FONT_TOO_SMALL: Tutorial = {
   id: 'font-too-small',
   title: '把手机字变大',
+  app: 'system',
   matchKeywords: [
     '手机字太小',
     '字太小',

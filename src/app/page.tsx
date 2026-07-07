@@ -47,16 +47,25 @@
 import { useRouter } from 'next/navigation'
 import { useRef, useState } from 'react'
 
+import { AppIcon } from '@/components/app-icon/app-icon'
 import { Companion } from '@/components/companion/companion'
+import type { TutorialApp } from '@/domain/tutorial/tutorial'
 import { routeWithFallback } from '@/lib/ai/client-route'
 import { VoiceInputButton } from '@/lib/speech/voice-input-button'
 
+// app: 快捷入口的 App 磁贴归属(类型来自领域层 TutorialApp,不另造映射)
+// risky: 高风险演示项,磁贴角上加红色「!」角标(模拟未读提醒的视觉语言)
 const DEMO_CASES = [
-  { label: '微信没有声音了', text: '微信没有声音了' },
-  { label: '手机字太小看不清', text: '手机字太小看不清' },
-  { label: '银行短信说账户被冻结', text: 'I got a message saying my bank account frozen and I need to click the link' },
-  { label: 'WhatsApp 让开屏幕共享', text: 'Someone on WhatsApp told me to share your screen' },
-] as const
+  { label: '微信没有声音了', text: '微信没有声音了', app: 'wechat', risky: false },
+  { label: '手机字太小看不清', text: '手机字太小看不清', app: 'system', risky: false },
+  { label: '银行短信说账户被冻结', text: 'I got a message saying my bank account frozen and I need to click the link', app: 'sms', risky: true },
+  { label: 'WhatsApp 让开屏幕共享', text: 'Someone on WhatsApp told me to share your screen', app: 'whatsapp', risky: true },
+] as const satisfies readonly {
+  label: string
+  text: string
+  app: TutorialApp
+  risky: boolean
+}[]
 
 export default function HomePage() {
   const router = useRouter()
@@ -185,6 +194,20 @@ export default function HomePage() {
               className="w-full min-h-[60px] px-5 py-3 rounded-xl bg-white hover:bg-(--color-soft) active:scale-[0.99] transition text-left text-lg text-(--color-foreground) border border-(--color-border) flex items-center gap-4 disabled:opacity-60 disabled:cursor-not-allowed"
               aria-label={`常见问题:${c.label}`}
             >
+              {/* App 磁贴纯装饰;risky 项加红「!」角标提示「这条有问题」。
+                  wrapper 必须显式 inline-flex:行内盒做绝对定位锚点时锚的是
+                  文字行框(比 48px 磁贴矮),角标会飘到磁贴下方。 */}
+              <span className="relative inline-flex shrink-0">
+                <AppIcon app={c.app} />
+                {c.risky && (
+                  <span
+                    aria-hidden
+                    className="absolute -top-1.5 -right-1.5 w-[22px] h-[22px] rounded-full bg-(--color-danger) text-white text-sm font-bold leading-none flex items-center justify-center border-2 border-white"
+                  >
+                    !
+                  </span>
+                )}
+              </span>
               <span className="flex-1">{c.label}</span>
               <span aria-hidden className="text-(--color-muted)">›</span>
             </button>

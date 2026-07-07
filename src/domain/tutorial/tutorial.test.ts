@@ -69,6 +69,18 @@ describe('TUTORIALS 库', () => {
       )
     }
   })
+
+  test('app 字段(如有)必须是已知 App(UI 磁贴图标按它渲染)', () => {
+    const KNOWN_APPS = ['wechat', 'sms', 'whatsapp', 'system']
+    for (const tut of TUTORIALS) {
+      if (tut.app !== undefined) {
+        assert.ok(
+          KNOWN_APPS.includes(tut.app),
+          `${tut.id} 的 app「${tut.app}」不在已知列表,AppIcon 会渲染不出磁贴`,
+        )
+      }
+    }
+  })
 })
 
 describe('findTutorial', () => {

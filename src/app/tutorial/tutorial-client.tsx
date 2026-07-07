@@ -47,6 +47,7 @@
 import Link from 'next/link'
 import { useState } from 'react'
 
+import { AppIcon } from '@/components/app-icon/app-icon'
 import type { Tutorial } from '@/domain/tutorial/tutorial'
 import { SpeakButton } from '@/lib/speech/speak-button'
 import { useSpeechRate } from '@/lib/speech/speech-rate'
@@ -104,7 +105,10 @@ export function TutorialClient({ text, tutorial }: Props) {
       </section>
 
       <section className="w-full mb-7 px-6 py-8 rounded-2xl bg-(--color-primary-soft) border-2 border-(--color-primary)">
-        <p className="text-lg font-semibold text-(--color-primary) mb-4">
+        {/* App 磁贴 + 步骤标题:告诉老人「这一步发生在哪个 App 里」。
+            图标纯装饰(aria-hidden 在组件内),语义由文字承载(适老铁律)。 */}
+        <p className="text-lg font-semibold text-(--color-primary) mb-4 flex items-center gap-3">
+          {tutorial.app && <AppIcon app={tutorial.app} size="sm" />}
           {showAlternative ? '换个说法' : step.title}
         </p>
         <p className="text-3xl sm:text-4xl font-bold leading-relaxed text-(--color-foreground)">
