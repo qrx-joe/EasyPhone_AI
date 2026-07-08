@@ -168,6 +168,11 @@ download an unknown app, start screen sharing, or reveal a payment password.
 | M5 AI integration | Done | GMI Cloud Inference Engine at two points: semantic risk recheck + help-card rewrite; fail-open design — the demo runs without an API key |
 | M6 Demo polish & deployment | Done | Live Vercel demo and a demo video |
 
+> **Recent demo enhancements** (ongoing M6 polish):
+> - **Companion mascot**: a voice-persona anchor on low-risk tutorial pages ("I'm listening / I'm teaching"), deliberately omitted from high-risk pages so it doesn't dilute the warning
+> - **App tile icons**: desktop-icon-style color blocks before tutorials and quick entries, helping elders recognize "which app" by color
+> - **a11y contrast guard**: build-time P0 contrast validation so large accessible type never drops below the WCAG safety line
+
 This project is a demonstrable MVP: the core loop, live demo, and demo video are ready. The next focus is collecting real scam samples from overseas Chinese families, bilingual prompts, and family feedback — expanding the tutorial library from "common phone problems in China" into an "overseas Chinese family digital-safety scenario library".
 
 ## 6. Safety Boundaries

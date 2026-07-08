@@ -5,7 +5,7 @@
 
 ## 运行环境
 
-- **Node.js**:`>= 24`(项目用 Node 24+ 的 `node --test` 原生测试)
+- **Node.js**:`24.x`(engines 锁定 24.x,防 Vercel 构建随 major 升级漂移;项目用其 `node --test` 原生测试)
 - **包管理**:**pnpm**(`>= 10`),lockfile 格式 v9+
 - **平台**:Web 浏览器(Chrome/Safari/Edge 现代版本)
   - iOS Safari 需要 iOS 16+(Web Speech API 限制)

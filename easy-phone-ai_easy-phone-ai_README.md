@@ -1,7 +1,7 @@
 # 文件夹说明书(项目根)
 
 > OpenPrd 文件夹说明书 · 项目根目录的"模块级"说明书
-> 最近更新:2026-06-05
+> 最近更新:2026-07-08
 
 ## 核心功能
 
@@ -44,6 +44,6 @@
 ## 维护规则
 
 - 改 `package.json` / `tsconfig.json` / `next.config.ts` 必过 CI(`pnpm test` + `pnpm build`)。
-- 改 `AGENTS.md` / `CLAUDE.md` / `README.md` 必同步更新 `docs/basic/` 跟 `EasyPhone_AI_EasyPhone_AI_README.md` 的"输入/输出"段。
+- 改 `AGENTS.md` / `CLAUDE.md` / `README.md` 必同步更新 `docs/basic/` 跟 `easy-phone-ai_easy-phone-ai_README.md` 的"输入/输出"段。
 - 加根级新文件前先想清楚归元信息 / 代码 / 文档,别乱塞。
 - 跑 `openprd standards . --verify` 验证项目级规范。
