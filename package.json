@@ -12,6 +12,7 @@
     "build": "next build",
     "start": "next start",
     "test": "node --test \"src/**/*.test.ts\"",
+    "smoke:gemini": "node scripts/gemini-smoke.mjs",
     "test:risk": "node --test src/domain/risk/classify-risk.test.ts",
     "lint:deps": "node scripts/verify-optional-deps.mjs"
   },

@@ -1,5 +1,9 @@
 # Google AI 出海创想赛：小红书发布方案
 
+> 2026-07-15 更新：参赛分支已经推送。最新验收状态、报名表答案和发布稿分别以
+> `docs/competition/acceptance-matrix.md`、`registration-form-answers.md` 和
+> `xiaohongshu-package.md` 为准。本文件保留早期策划过程，不再作为当前状态来源。
+
 ## 一、当前结论
 
 项目方向符合「善 · 守护需要守护的人」赛道，但当前版本还不适合按“正式完成作品”提交。
