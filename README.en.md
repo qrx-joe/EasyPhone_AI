@@ -69,35 +69,35 @@ flowchart TD
         H["POST /api/help-summary<br/>AI rewrites the help card · output passes 4 safety gates"]
     end
 
-    subgraph gmi["⚡ GMI Cloud Inference Engine"]
-        G["deepseek-ai/DeepSeek-V4-Flash<br/>api.gmi-serving.com · OpenAI-compatible API"]
+    subgraph google["✨ Google Gemini API"]
+        G["Gemini 3.5 Flash<br/>structured JSON · server-side REST"]
     end
 
     B --> C
     C --> D
     D -->|"medium / high / critical"| F["/risk-alert page<br/>Stop first + Family Help Card"]
     D -->|"low"| E
-    E -->|"chat completions"| G
+    E -->|"generateContent"| G
     E -->|"keep"| T["/confirm page → step-by-step tutorial<br/>one step at a time"]
     E -->|"escalate: AI catches semantic risk<br/>that keywords missed"| F
     F -.->|"page renders instantly from template,<br/>then upgrades copy asynchronously"| H
-    H -->|"chat completions"| G
+    H -->|"generateContent"| G
 
-    classDef gmiStyle fill:#f5e642,stroke:#b8a800,stroke-width:3px,color:#1a1a1a
+    classDef googleStyle fill:#e8f0fe,stroke:#4285f4,stroke-width:3px,color:#1a1a1a
     classDef dangerStyle fill:#fee2e2,stroke:#dc2626,stroke-width:2px,color:#1a1a1a
     classDef safeStyle fill:#dbeafe,stroke:#2563eb,stroke-width:2px,color:#1a1a1a
     classDef fuseStyle fill:#ffedd5,stroke:#ea580c,stroke-width:2px,color:#1a1a1a
-    class G gmiStyle
+    class G googleStyle
     class F dangerStyle
     class T safeStyle
     class D fuseStyle
 ```
 
-**How to read this diagram**: the keyword safety fuse (orange) is the primary defense — the AI can never downgrade a risk it has flagged. The GMI Cloud Inference Engine (yellow) steps in at exactly two points: rechecking semantic risks that slipped past the keywords (escalate-only, never downgrade), and rewriting the senior's vague description into a help card their children can understand at a glance. If any AI call fails, the product falls back to rules and templates — the demo runs end-to-end without AI.
+**How to read this diagram**: the keyword safety fuse (orange) is the primary defense — the AI can never downgrade a risk it has flagged. Google Gemini steps in at exactly two points: rechecking semantic risks that slipped past the keywords (escalate-only, never downgrade), and rewriting the senior's vague description into a help card their children can understand at a glance. If any AI call fails, the product falls back to rules and templates — the demo runs end-to-end without an API key.
 
-### GMI Cloud Inference Engine integration
+### Google Gemini API integration
 
-Inference is provided by the **GMI Cloud Inference Engine** (OpenAI-compatible API, zero SDK dependencies, native `fetch`):
+Inference is provided by the **Google Gemini API** through a server-side native `fetch` call with structured output:
 
 | Integration point | Code location | What the AI does | On failure |
 |---|---|---|---|
@@ -106,16 +106,16 @@ Inference is provided by the **GMI Cloud Inference Engine** (OpenAI-compatible A
 
 ```text
 endpoint : https://api.gmi-serving.com/v1/chat/completions
-model    : deepseek-ai/DeepSeek-V4-Flash (temperature 0.1, forced JSON output)
+model    : gemini-3.5-flash (temperature 0.1, structured JSON output)
 config   : .env.local (see .env.example); the key lives server-side only
 ```
 
-A real audit-log case (all keywords missed; the GMI recheck caught it):
+A reproducible audit case (all keywords missed; the Gemini recheck caught it):
 
 ```text
 Input:   "My daughter messaged me to wire 5,000 to her classmate urgently"
 Keyword fuse:    low (0 risk keywords hit)
-GMI AI recheck:  escalate ← "transfer request received; identity must be verified to prevent fraud"
+Gemini recheck:  escalate ← "transfer request received; identity must be verified to prevent fraud"
 Final route:     /risk-alert (4.3s)
 ```
 
@@ -132,7 +132,7 @@ Safety design: AI output must pass strict JSON validation; help-card copy additi
 | Voice output | SpeechSynthesis | Every step has a "read it to me" button |
 | Risk classification | Local keyword rules + MAX(level) safety fuse | Multiple keyword hits always take the highest risk level |
 | Tutorial content | Whitelisted tutorial library | Steps are only emitted for verified low-risk scenarios — no AI-improvised tutorials |
-| AI enhancement | GMI Cloud Inference Engine (DeepSeek-V4-Flash) | Semantic recheck of low-risk inputs + help-card rewriting; rules remain the primary defense, product is fully usable when AI fails |
+| AI enhancement | Google Gemini API (Gemini 3.5 Flash) | Structured semantic recheck of low-risk inputs + help-card rewriting; rules remain the primary defense |
 | Testing | Node.js `node:test` | Covers risk classification, routing, tutorials, help cards |
 
 ### Core ideas
@@ -165,7 +165,7 @@ download an unknown app, start screen sharing, or reveal a payment password.
 | M2 Home & input flow | Done | Text input, voice input, demo entries |
 | M3 Low-risk step-by-step guidance | Done | "WeChat no sound", "font too small", etc. |
 | M4 High-risk interrupt + Family Help Card | Done | Verification code, screen sharing, etc. route straight to the alert page |
-| M5 AI integration | Done | GMI Cloud Inference Engine at two points: semantic risk recheck + help-card rewrite; fail-open design — the demo runs without an API key |
+| M5 AI integration | Done | Google Gemini at two core points: semantic risk recheck + help-card rewrite; structured output + fail-open |
 | M6 Demo polish & deployment | Done | Live Vercel demo and a demo video |
 
 > **Recent demo enhancements** (ongoing M6 polish):
@@ -220,7 +220,7 @@ pnpm dev
 
 Open <http://localhost:3000>.
 
-Enable AI enhancement (optional — everything works without it): copy `.env.example` to `.env.local` and fill in your GMI Cloud API key (`DEEPSEEK_API_KEY`); the endpoint and model name are already in the example file.
+Enable AI enhancement (optional — everything works without it): copy `.env.example` to `.env.local` and fill in your Google AI Studio key (`GEMINI_API_KEY`); the endpoint and model name are already in the example file.
 
 You can also open the demo routes directly:
 

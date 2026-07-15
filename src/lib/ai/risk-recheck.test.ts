@@ -5,7 +5,7 @@
  *
  * ## 输入
  * - 文件内造的 RiskClassification(全部走 LOW,因为是"low 复检"语义)
- * - 通过 DeepSeekClient 参数注入 mock(不依赖 env)
+ * - 通过 AiClient 参数注入 mock(不依赖 env)
  *
  * ## 输出
  * node --test 跑过的 pass/fail 计数(本文件 9+ case,3 个 suite)
@@ -20,7 +20,7 @@
  *
  * ## 依赖
  * node:test + node:assert/strict;`./risk-recheck.ts` 的 `recheckLowRisk`;
- * `./deepseek-client.ts` 的 `DeepSeekClient` 类型;`../../domain/risk/types.ts` 的 `RiskClassification`。
+ * `./ai-client.ts` 的 `AiClient` 类型;`../../domain/risk/types.ts` 的 `RiskClassification`。
  *
  * ## 维护规则
  * - 改 fail-open 路径 = 改安全哲学,需 ADR
@@ -31,13 +31,13 @@ import assert from 'node:assert/strict'
 import { afterEach, beforeEach, describe, test } from 'node:test'
 
 import type { RiskClassification } from '../../domain/risk/types.ts'
-import type { DeepSeekClient } from './deepseek-client.ts'
+import type { AiClient } from './ai-client.ts'
 import { recheckLowRisk } from './risk-recheck.ts'
 
 /**
  * mock client 工厂;每个测试用 `clientOverride` 跑一个行为分支。
  */
-function makeMockClient(overrides: Partial<DeepSeekClient> = {}): DeepSeekClient {
+function makeMockClient(overrides: Partial<AiClient> = {}): AiClient {
   return {
     isEnabled: () => true,
     chat: async () => '{"decision":"keep","reason":"mock"}',
@@ -57,15 +57,15 @@ describe('recheckLowRisk — fail-open 路径(AI 不跑)', () => {
 
   beforeEach(() => {
     prevEnabled = process.env.ENABLE_AI_RISK_RECHECK
-    prevKey = process.env.DEEPSEEK_API_KEY
+    prevKey = process.env.GEMINI_API_KEY
   })
 
   afterEach(() => {
     // 还原 env,避免污染
     if (prevEnabled === undefined) delete process.env.ENABLE_AI_RISK_RECHECK
     else process.env.ENABLE_AI_RISK_RECHECK = prevEnabled
-    if (prevKey === undefined) delete process.env.DEEPSEEK_API_KEY
-    else process.env.DEEPSEEK_API_KEY = prevKey
+    if (prevKey === undefined) delete process.env.GEMINI_API_KEY
+    else process.env.GEMINI_API_KEY = prevKey
   })
 
   test('ENABLE_AI_RISK_RECHECK=false → 跳过 AI,keep', async () => {
@@ -168,7 +168,7 @@ describe('recheckLowRisk — AI 决策路径', () => {
   test('AI 抛错(网络/超时/HTTP 5xx) → fail-open', async () => {
     const client = makeMockClient({
       chat: async () => {
-        throw new Error('DeepSeek timeout after 2000ms')
+        throw new Error('Gemini timeout after 2000ms')
       },
     })
     const r = await recheckLowRisk('微信没声音', LOW_CLASSIFICATION, client)
@@ -193,7 +193,7 @@ describe('recheckLowRisk — AI 决策路径', () => {
 
 describe('recheckLowRisk — 不变量:永不抛出', () => {
   test('client.chat 抛同步异常也吞掉', async () => {
-    const client: DeepSeekClient = {
+    const client: AiClient = {
       isEnabled: () => true,
       chat: () => {
         throw new Error('sync throw')

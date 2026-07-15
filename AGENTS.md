@@ -18,7 +18,7 @@ This version has breaking changes — APIs, conventions, and file structure may 
 - **M2** 首页与输入流程 ✅
 - **M3** 低风险分步指导 ✅
 - **M4** 高风险中断 + 家人求助卡 ✅
-- **M5** AI 接入 ✅（GMI Cloud 双接入点：风险语义复检 + 家人求助单改写；fail-open，Demo 无 key 也跑通）
+- **M5** AI 接入 ✅（Google Gemini 双接入点：风险语义复检 + 家人求助单改写；结构化输出 + fail-open，Demo 无 key 也跑通）
 - **M6** Demo 打磨与部署 ✅（Vercel Demo 已上线 easy-phone-ai.vercel.app + B 站演示视频）
 
 详情见 [docs/06-development-plan.md](docs/06-development-plan.md)。

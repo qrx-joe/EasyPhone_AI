@@ -33,7 +33,8 @@ import {
   buildRouteForInput,
   type RouteDecision,
 } from '../../domain/routing/user-routing.ts'
-import { defaultDeepSeekClient, type DeepSeekClient } from './deepseek-client.ts'
+import type { AiClient } from './ai-client.ts'
+import { defaultGeminiClient } from './gemini-client.ts'
 import { recheckLowRisk } from './risk-recheck.ts'
 
 /**
@@ -53,12 +54,12 @@ import { recheckLowRisk } from './risk-recheck.ts'
  *
  * 任何步骤异常(理论上 recheckLowRisk 内部已 fail-open)→ 兜底返回 buildRouteForInput。
  *
- * @param client 可选:注入的 DeepSeek client;默认走模块级 defaultDeepSeekClient。
+ * @param client 可选:注入的 AI client;默认走模块级 defaultGeminiClient。
  *               单测时注入 mock client,生产代码不传(用 default)。
  */
 export async function routeWithAiRecheck(
   text: string,
-  client: DeepSeekClient = defaultDeepSeekClient,
+  client: AiClient = defaultGeminiClient,
 ): Promise<RouteDecision> {
   // 入口 trim:统一 AI prompt、URL、审计日志的输入形态,避免空白歧义
   const trimmed = text.trim()

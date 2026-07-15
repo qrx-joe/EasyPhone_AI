@@ -16,7 +16,7 @@
  *
  * ## 定位
  * M5 AI 层的第二个能力(第一个是 risk-recheck)。与 recheck 共用
- * deepseek-client / rate-limit / kill-switch / 审计日志骨架。
+ * Gemini client / rate-limit / kill-switch / 审计日志骨架。
  * **只增强展示,不参与任何风险决策** —— 风险等级、suggestions、路由
  * 全部与本函数无关。
  *
@@ -25,7 +25,7 @@
  * 求助卡永远有模板兜底,AI 只是把它写得更像人话。
  *
  * ## 依赖
- * `./deepseek-client.ts`、`./rate-limit.ts`、`./prompts/help-summary.ts`、
+ * `./gemini-client.ts`、`./rate-limit.ts`、`./prompts/help-summary.ts`、
  * `./risk-recheck.ts` 的 `auditInputHash`。
  *
  * ## 维护规则
@@ -35,11 +35,11 @@
  * - server-only 保证与 risk-recheck 同策略:不加 `import 'server-only'`
  *   (node --test 下会 throw),靠「只被 API route import」+ review 守门。
  */
+import type { AiClient } from './ai-client.ts'
 import {
-  defaultDeepSeekClient,
+  defaultGeminiClient,
   isAiRecheckGloballyEnabled,
-  type DeepSeekClient,
-} from './deepseek-client.ts'
+} from './gemini-client.ts'
 import { tryConsume } from './rate-limit.ts'
 import { auditInputHash } from './risk-recheck.ts'
 import {
@@ -58,6 +58,13 @@ const MAX_TEXT_LENGTH = 200
  */
 const SUMMARY_MAX_TOKENS = 300
 
+const HELP_SUMMARY_RESPONSE_SCHEMA = {
+  type: 'object',
+  properties: { summary: { type: 'string' } },
+  required: ['summary'],
+  additionalProperties: false,
+} as const
+
 export interface FamilySummaryResult {
   readonly summary: string | null
   readonly source: 'ai' | 'fallback'
@@ -67,13 +74,13 @@ export interface FamilySummaryResult {
  * 生成家人求助单 summary。任何失败 → `{ summary: null, source: 'fallback' }`,
  * **不抛出** —— 这层是展示增强,异常不能影响风险页主流程。
  *
- * @param client 单测注入 mock;生产不传(用 defaultDeepSeekClient)。
+ * @param client 单测注入 mock;生产不传(用 defaultGeminiClient)。
  */
 export async function generateFamilySummary(
   text: string,
   level: 'high' | 'critical',
   keywords: readonly string[],
-  client: DeepSeekClient = defaultDeepSeekClient,
+  client: AiClient = defaultGeminiClient,
 ): Promise<FamilySummaryResult> {
   const start = Date.now()
 
@@ -103,6 +110,7 @@ export async function generateFamilySummary(
       system: HELP_SUMMARY_SYSTEM_PROMPT,
       user: buildHelpSummaryUserPrompt(text, level, keywords),
       maxTokens: SUMMARY_MAX_TOKENS,
+      responseSchema: HELP_SUMMARY_RESPONSE_SCHEMA,
     })
 
     const parsed = parseHelpSummaryOutput(raw)

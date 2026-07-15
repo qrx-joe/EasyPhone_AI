@@ -36,7 +36,8 @@ pnpm test                 # 全部,包括 user-routing 12 个
 
 | 文件 | 角色 |
 |---|---|
-| `deepseek-client.ts` | DeepSeek fetch 包装;server-only;env 缺失时 fail-fast |
+| `ai-client.ts` | Provider-neutral `AiClient` 合约,避免业务层绑定供应商 |
+| `gemini-client.ts` | Gemini `generateContent` REST 包装;结构化输出;env 缺失时 disabled |
 | `prompts/risk-recheck.ts` | 系统/用户提示词 + JSON schema;**不引用**用户文本到 system |
 | `risk-recheck.ts` | `recheckLowRisk()` 纯异步函数;返回 `keep` / `escalate` + reason |
 | `risk-recheck.test.ts` | 覆盖 keep / escalate / timeout / malformed / env-disabled / high-bypass |
@@ -63,7 +64,7 @@ pnpm test                 # 全部,包括 user-routing 12 个
                           ↓
                           [src/lib/ai/risk-recheck.ts]
                           ↓ fetch
-                          [src/lib/ai/deepseek-client.ts] → DeepSeek API
+                          [src/lib/ai/gemini-client.ts] → Google Gemini API
                           ↓
                           validate JSON {decision, reason}
   3. AI escalate ? 覆盖为 /risk-alert : 保持原路

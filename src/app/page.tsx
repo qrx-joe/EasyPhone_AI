@@ -72,7 +72,7 @@ export default function HomePage() {
   const [mode, setMode] = useState<'idle' | 'text'>('idle')
   const [textInput, setTextInput] = useState('')
   const [showFamilyHelp, setShowFamilyHelp] = useState(false)
-  // AI 判断 pending 态:GMI 推理 4~6s,老人必须看到「它在想」而不是死屏。
+  // AI 判断 pending 态:Gemini 请求可能有冷启动,老人必须看到「它在想」而不是死屏。
   // 精灵切 thinking + 按钮文案变化 = AI 工作的可见反馈(比赛「体现使用」+ 适老 UX)。
   const [isRouting, setIsRouting] = useState(false)
 

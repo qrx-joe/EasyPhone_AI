@@ -4,7 +4,7 @@
  * `routeWithAiRecheck` 单元测试 —— 验证 AI 兜底和关键词保险丝的协作。
  *
  * ## 输入
- * - 文件内造的中文输入(各风险等级)+ 显式 mock 的 DeepSeekClient
+ * - 文件内造的中文输入(各风险等级)+ 显式 mock 的 AiClient
  *
  * ## 输出
  * node --test 跑过的 pass/fail 计数(本文件 9+ case,3 个 suite)
@@ -20,7 +20,7 @@
  *
  * ## 依赖
  * node:test + node:assert/strict;`./route-with-ai.ts` 的 `routeWithAiRecheck`;
- * `./deepseek-client.ts` 的 `DeepSeekClient` 类型;`process.env.ENABLE_AI_RISK_RECHECK`。
+ * `./ai-client.ts` 的 `AiClient` 类型;`process.env.ENABLE_AI_RISK_RECHECK`。
  *
  * ## 维护规则
  * 任何 PR 改 routeWithAiRecheck → 跑这 8+ 个 case;漏一个 = 安全不变量缺口。
@@ -30,7 +30,7 @@
 import assert from 'node:assert/strict'
 import { afterEach, beforeEach, describe, test } from 'node:test'
 
-import type { DeepSeekClient } from './deepseek-client.ts'
+import type { AiClient } from './ai-client.ts'
 import { routeWithAiRecheck } from './route-with-ai.ts'
 
 let prevEnabled: string | undefined
@@ -47,7 +47,7 @@ afterEach(() => {
 
 function makeClient(
   chatImpl: (req: { system: string; user: string }) => Promise<string>,
-): DeepSeekClient {
+): AiClient {
   return {
     isEnabled: () => true,
     chat: chatImpl,

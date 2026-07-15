@@ -50,7 +50,7 @@ import { useSpeechRecognition } from './use-speech-recognition.ts'
 interface VoiceInputButtonProps {
   /**
    * AI 判断 pending 变化回调(可选)。
-   * 首页用它让陪伴精灵切 thinking 态 —— 语音提交后 GMI 推理 4~6s,
+   * 首页用它让陪伴精灵切 thinking 态 —— 语音提交后 Gemini 可能有冷启动,
    * 老人必须看到「它在想」。不传则只有按钮自身的 pending 文案。
    */
   onRoutingChange?: (routing: boolean) => void

@@ -6,10 +6,10 @@ M5 AI 兜底层的全部代码 —— **形态 ① 外部复检**。关键词保
 ## 输入
 - 用户原始输入 text(string)
 - `RiskClassification`(从关键词保险丝来的 level / matchedKeywords / reason)
-- `process.env.DEEPSEEK_API_KEY` / `DEEPSEEK_MODEL` / `DEEPSEEK_BASE_URL` / `AI_RECHECK_TIMEOUT_MS` / `ENABLE_AI_RISK_RECHECK`
+- `process.env.GEMINI_API_KEY` / `GEMINI_MODEL` / `GEMINI_BASE_URL` / `AI_RECHECK_TIMEOUT_MS` / `ENABLE_AI_RISK_RECHECK`
 
 ## 输出
-- `deepseek-client.ts` — DeepSeek (OpenAI 兼容) fetch 包装;`createDeepSeekClient` 工厂 + `defaultDeepSeekClient` 默认实例;server-only。
+- `ai-client.ts` — Provider-neutral AI 合约;`gemini-client.ts` — Google Gemini `generateContent` REST 包装与默认实例。
 - `risk-recheck.ts` — `recheckLowRisk(text, classification, client?)` 异步函数;返回 `{ decision, reason, source }`;**fail-open 永不抛出**。
 - `route-with-ai.ts` — `routeWithAiRecheck(text, client?)` 路由入口;在 `buildRouteForInput` 之上叠加 AI 复检;只在 LOW 上调 AI。
 - `fetch-route.ts` — Client 端 fetch 包装;'use client';调 `POST /api/route` 拿最终路由;调用方负责失败降级。
@@ -26,7 +26,7 @@ M5 AI 兜底层的全部代码 —— **形态 ① 外部复检**。关键词保
 ## 依赖
 - `src/domain/routing/user-routing.ts` 的 `buildRouteForInput`(关键词保险丝)
 - `src/domain/risk/types.ts` 的 `RiskClassification` / `RiskLevel`
-- DeepSeek API(`https://api.deepseek.com/chat/completions`,OpenAI 兼容)
+- Google Gemini API(`generateContent`,结构化 JSON 输出)
 - 浏览器 `fetch`(仅 `fetch-route.ts` 用)
 - Node 20+ `fetch` + `AbortController`(仅 server 端用)
 

@@ -4,7 +4,7 @@
  * `generateFamilySummary` 编排层测试:ok / fail-open 各路径 + 安全闸联动。
  *
  * ## 输入
- * mock DeepSeekClient(可控返回/抛错)+ 受控 env。
+ * mock AiClient(可控返回/抛错)+ 受控 env。
  *
  * ## 输出
  * node --test pass/fail 计数。
@@ -22,7 +22,7 @@
 import assert from 'node:assert/strict'
 import { beforeEach, describe, test } from 'node:test'
 
-import type { DeepSeekClient } from './deepseek-client.ts'
+import type { AiClient } from './ai-client.ts'
 import { generateFamilySummary } from './help-summary.ts'
 import { __resetRateLimitStateForTests } from './rate-limit.ts'
 
@@ -31,7 +31,7 @@ const VALID_SUMMARY =
 
 function mockClient(
   behavior: 'ok' | 'forbidden' | 'garbage' | 'throw' | 'disabled',
-): DeepSeekClient {
+): AiClient {
   return {
     isEnabled: () => behavior !== 'disabled',
     async chat() {
@@ -46,7 +46,7 @@ function mockClient(
         case 'garbage':
           return '抱歉我无法输出 JSON'
         case 'throw':
-          throw new Error('DeepSeek timeout after 8000ms')
+          throw new Error('Gemini timeout after 8000ms')
         case 'disabled':
           throw new Error('unreachable')
       }
@@ -93,7 +93,7 @@ describe('generateFamilySummary — fail-open(全部返回 null,绝不抛出)', 
   test('kill-switch(ENABLE_AI_RISK_RECHECK=false)→ null,不调 client', async () => {
     process.env.ENABLE_AI_RISK_RECHECK = 'false'
     let called = false
-    const spy: DeepSeekClient = {
+    const spy: AiClient = {
       isEnabled: () => true,
       async chat() {
         called = true
@@ -107,7 +107,7 @@ describe('generateFamilySummary — fail-open(全部返回 null,绝不抛出)', 
 
   test('超长输入(>200 字)→ null,不调 client', async () => {
     let called = false
-    const spy: DeepSeekClient = {
+    const spy: AiClient = {
       isEnabled: () => true,
       async chat() {
         called = true

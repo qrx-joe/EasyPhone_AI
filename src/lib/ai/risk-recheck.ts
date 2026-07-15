@@ -22,7 +22,7 @@
  * 理由(详见 README):关键词保险丝是主防线,AI 是补漏。
  *
  * ## 依赖
- * `./deepseek-client.ts` 的 `defaultDeepSeekClient` + `isAiRecheckGloballyEnabled()`。
+ * `./gemini-client.ts` 的 `defaultGeminiClient` + `isAiRecheckGloballyEnabled()`。
  * `./prompts/risk-recheck.ts` 的 prompt builders + JSON 解析。
  *
  * ## 维护规则
@@ -32,11 +32,11 @@
  */
 import { createHash } from 'node:crypto'
 import type { RiskClassification } from '../../domain/risk/types.ts'
+import type { AiClient } from './ai-client.ts'
 import {
-  defaultDeepSeekClient,
+  defaultGeminiClient,
   isAiRecheckGloballyEnabled,
-  type DeepSeekClient,
-} from './deepseek-client.ts'
+} from './gemini-client.ts'
 import { tryConsume } from './rate-limit.ts'
 import {
   RISK_RECHECK_SYSTEM_PROMPT,
@@ -50,6 +50,16 @@ import {
  * 老人正常一句话远小于 200 字;200+ 多半是粘贴/复制的非典型输入。
  */
 const MAX_TEXT_LENGTH = 200
+
+const RISK_RECHECK_RESPONSE_SCHEMA = {
+  type: 'object',
+  properties: {
+    decision: { type: 'string', enum: ['keep', 'escalate'] },
+    reason: { type: 'string' },
+  },
+  required: ['decision', 'reason'],
+  additionalProperties: false,
+} as const
 
 /**
  * AI 复检结果。`source` 区分真实 AI 决策和 fail-open,用于审计和监控。
@@ -70,13 +80,13 @@ export interface AiRecheckResult {
  * 失败模式:任何异常 → `{ decision: 'keep', source: 'fallback' }`。
  * **不抛出** —— 这层是"补漏",异常不能向上传。
  *
- * @param client  可选:注入的 DeepSeek client;默认走模块级 defaultDeepSeekClient。
+ * @param client  可选:注入的 AI client;默认走模块级 defaultGeminiClient。
  *                单测时注入 mock client,生产代码不传(用 default)。
  */
 export async function recheckLowRisk(
   text: string,
   classification: RiskClassification,
-  client: DeepSeekClient = defaultDeepSeekClient,
+  client: AiClient = defaultGeminiClient,
 ): Promise<AiRecheckResult> {
   const start = Date.now()
 
@@ -129,6 +139,7 @@ export async function recheckLowRisk(
     const raw = await client.chat({
       system: RISK_RECHECK_SYSTEM_PROMPT,
       user: buildRiskRecheckUserPrompt(text, classification),
+      responseSchema: RISK_RECHECK_RESPONSE_SCHEMA,
     })
 
     const parsed = parseAiRecheckOutput(raw)
