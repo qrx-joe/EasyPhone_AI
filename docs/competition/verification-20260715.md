@@ -12,6 +12,15 @@
 | Gemini CLI 真实审查 | 非交互只读审查 | 未通过；缺少 CLI 认证方式，退出码 41 |
 | Gemini API 烟雾测试 | `pnpm smoke:gemini` | 未运行；当前终端没有 `GEMINI_API_KEY` |
 | GitHub 参赛分支 | `contest/google-ai-vibeathon-2026` | 已公开推送 |
+| Vercel Preview | 稳定分支别名与 4 条页面路径 | HTTP 200，无需登录 |
 
 跳过项是 WCAG AAA 的 `muted #6b7280 × white >= 7:1` 目标，不是业务逻辑失败。当前结果不能证明真实 Gemini API 已调用，发布材料必须保持这一边界。
 
+新版 Preview：<https://easy-phone-ai-git-contest-google-ai-vi-c361ce-qrx-joes-projects.vercel.app>
+
+已验证路径：
+
+- `/`
+- `/tutorial/demo?case=wechat`
+- `/risk-alert/demo?case=overseas-bank`
+- `/risk-alert/demo?case=overseas-whatsapp`

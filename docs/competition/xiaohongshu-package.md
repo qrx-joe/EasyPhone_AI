@@ -67,7 +67,7 @@
 
 GitHub：<https://github.com/qrx-joe/EasyPhone_AI/tree/contest/google-ai-vibeathon-2026>
 
-在线体验：`【新版部署完成后填写】`
+在线体验：<https://easy-phone-ai-git-contest-google-ai-vi-c361ce-qrx-joes-projects.vercel.app>
 
 #GDG出海创想赛 #Google开发者大会 #GoogleAI #VibeCoding #科技向善 #适老化 #出海产品
 
@@ -85,8 +85,7 @@ GitHub：<https://github.com/qrx-joe/EasyPhone_AI/tree/contest/google-ai-vibeath
 - [ ] 删除所有方括号占位符；
 - [ ] 指定话题原样存在；
 - [ ] GitHub 指向参赛分支，不是旧版 main；
-- [ ] Demo 是新版且无需登录；
+- [x] Demo 是新版且无需登录；
 - [ ] Gemini 画面来自真实使用；
 - [ ] 不含 Key、账号、手机号、真实短信或用户隐私；
 - [ ] 不虚构用户数量、落地效果或准确率。
-

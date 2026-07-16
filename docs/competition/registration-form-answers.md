@@ -8,7 +8,7 @@
 - 首发目标市场：新加坡华人家庭
 - 后续市场：马来西亚及北美华人家庭
 - GitHub 参赛分支：<https://github.com/qrx-joe/EasyPhone_AI/tree/contest/google-ai-vibeathon-2026>
-- 在线 Demo：`【新版部署完成后填写】`
+- 在线 Demo：<https://easy-phone-ai-git-contest-google-ai-vi-c361ce-qrx-joes-projects.vercel.app>
 - 小红书作品：`【发布后填写】`
 - 演示视频：<https://www.bilibili.com/video/BV15mEX6dEBt/>
 
@@ -52,4 +52,3 @@ EasyPhone AI 是面向海外华人长者的安全手机教练：普通问题一�
 - 小红书笔记链接；
 - 真实 Gemini 使用方式、任务、采纳修改和测试结果；
 - 确认作品版权、开源许可和比赛条款。
-

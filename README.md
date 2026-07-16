@@ -204,6 +204,8 @@ EasyPhone AI 面向的是一个真实而长期存在的问题：老人并不缺�
 | 材料 | 链接 |
 |---|---|
 | GitHub 仓库 | <https://github.com/qrx-joe/EasyPhone_AI> |
+| Google AI 参赛分支 | <https://github.com/qrx-joe/EasyPhone_AI/tree/contest/google-ai-vibeathon-2026> |
+| 参赛版 Preview | <https://easy-phone-ai-git-contest-google-ai-vi-c361ce-qrx-joes-projects.vercel.app> |
 | 在线 Demo | <https://easy-phone-ai.vercel.app> |
 | 演示视频 | <https://www.bilibili.com/video/BV15mEX6dEBt/> |
 | 权威 PRD | [docs/00-prd-cn-authoritative.md](docs/00-prd-cn-authoritative.md) |
