@@ -1,0 +1,456 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>EasyPhone AI 小红书参赛图卡</title>
+  <style>
+    :root {
+      --blue: #2563eb;
+      --red: #dc2626;
+      --ink: #111827;
+      --muted: #64748b;
+      --paper: #f8fafc;
+      --line: #dbe4f0;
+      --green: #059669;
+      --amber: #d97706;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: #e5e7eb;
+      font-family: "Microsoft YaHei", "PingFang SC", "Noto Sans CJK SC", Arial, sans-serif;
+      color: var(--ink);
+    }
+
+    .card {
+      position: relative;
+      width: 1080px;
+      height: 1440px;
+      overflow: hidden;
+      background: linear-gradient(180deg, #ffffff 0%, #eef6ff 100%);
+      padding: 72px 76px;
+    }
+
+    body.single .card { display: none; }
+    body.single .card.active { display: block; }
+
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 18px;
+      border: 2px solid var(--line);
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.78);
+      color: var(--muted);
+      font-size: 28px;
+      font-weight: 700;
+    }
+
+    h1 {
+      margin: 28px 0 18px;
+      font-size: 84px;
+      line-height: 1.06;
+      letter-spacing: 0;
+    }
+
+    h2 {
+      margin: 20px 0;
+      font-size: 62px;
+      line-height: 1.12;
+      letter-spacing: 0;
+    }
+
+    p {
+      margin: 0;
+      font-size: 32px;
+      line-height: 1.55;
+      color: #334155;
+    }
+
+    .lead {
+      font-size: 38px;
+      line-height: 1.45;
+      color: #1f2937;
+      font-weight: 650;
+    }
+
+    .phone {
+      width: 360px;
+      border: 10px solid #111827;
+      border-radius: 46px;
+      overflow: hidden;
+      box-shadow: 0 30px 70px rgba(15, 23, 42, 0.24);
+      background: #fff;
+    }
+
+    .phone img {
+      display: block;
+      width: 100%;
+    }
+
+    .grid2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 28px;
+      align-items: center;
+    }
+
+    .bubble {
+      padding: 28px 30px;
+      border-radius: 28px;
+      background: #fff;
+      border: 2px solid var(--line);
+      box-shadow: 0 16px 34px rgba(15, 23, 42, 0.08);
+      font-size: 34px;
+      line-height: 1.35;
+      font-weight: 750;
+    }
+
+    .bubble small {
+      display: block;
+      margin-top: 10px;
+      color: var(--muted);
+      font-size: 24px;
+      font-weight: 600;
+    }
+
+    .flow {
+      display: grid;
+      gap: 22px;
+      margin-top: 42px;
+    }
+
+    .step {
+      display: grid;
+      grid-template-columns: 92px 1fr;
+      gap: 24px;
+      align-items: center;
+      padding: 26px;
+      border-radius: 26px;
+      background: #ffffff;
+      border: 2px solid var(--line);
+      box-shadow: 0 12px 28px rgba(15, 23, 42, 0.07);
+    }
+
+    .num {
+      width: 76px;
+      height: 76px;
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+      color: #fff;
+      background: var(--blue);
+      font-size: 34px;
+      font-weight: 900;
+    }
+
+    .step strong {
+      display: block;
+      font-size: 36px;
+      line-height: 1.25;
+    }
+
+    .step span {
+      display: block;
+      margin-top: 8px;
+      font-size: 26px;
+      line-height: 1.35;
+      color: var(--muted);
+    }
+
+    .panel {
+      margin-top: 36px;
+      padding: 34px;
+      border-radius: 30px;
+      background: #fff;
+      border: 2px solid var(--line);
+      box-shadow: 0 18px 42px rgba(15, 23, 42, 0.08);
+    }
+
+    .list {
+      display: grid;
+      gap: 18px;
+      margin-top: 26px;
+    }
+
+    .item {
+      display: flex;
+      gap: 18px;
+      align-items: flex-start;
+      font-size: 32px;
+      line-height: 1.42;
+      color: #243044;
+      font-weight: 650;
+    }
+
+    .dot {
+      flex: 0 0 auto;
+      width: 18px;
+      height: 18px;
+      margin-top: 14px;
+      border-radius: 50%;
+      background: var(--blue);
+    }
+
+    .notice {
+      padding: 26px 30px;
+      border-left: 12px solid var(--amber);
+      background: #fff7ed;
+      border-radius: 22px;
+      font-size: 30px;
+      line-height: 1.45;
+      color: #7c2d12;
+      font-weight: 700;
+    }
+
+    .status {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 22px;
+      margin-top: 32px;
+    }
+
+    .status div {
+      padding: 28px;
+      min-height: 170px;
+      border-radius: 26px;
+      background: #fff;
+      border: 2px solid var(--line);
+    }
+
+    .status strong {
+      display: block;
+      margin-bottom: 12px;
+      font-size: 34px;
+    }
+
+    .status span {
+      color: var(--muted);
+      font-size: 26px;
+      line-height: 1.4;
+    }
+
+    .footer {
+      position: absolute;
+      left: 76px;
+      right: 76px;
+      bottom: 50px;
+      display: flex;
+      justify-content: space-between;
+      gap: 20px;
+      color: var(--muted);
+      font-size: 24px;
+      font-weight: 700;
+    }
+
+    .card[data-card="6"] .footer { display: none; }
+
+    .mono {
+      font-family: ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", monospace;
+      font-size: 26px;
+      color: #0f172a;
+      background: #e0f2fe;
+      padding: 4px 10px;
+      border-radius: 8px;
+    }
+
+    .wide-shot {
+      width: 445px;
+      border: 8px solid #111827;
+      border-radius: 42px;
+      box-shadow: 0 24px 58px rgba(15, 23, 42, 0.2);
+      overflow: hidden;
+      background: #fff;
+    }
+
+    .wide-shot img { width: 100%; display: block; }
+
+    .mini-shots {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 18px;
+      margin-top: 34px;
+    }
+
+    .mini-shots img {
+      width: 100%;
+      height: 470px;
+      object-fit: cover;
+      object-position: top center;
+      border: 5px solid #111827;
+      border-radius: 28px;
+      background: #fff;
+    }
+
+    .compact-note {
+      margin-top: 24px;
+      padding: 18px 24px;
+      border-left: 10px solid var(--amber);
+      background: #fff7ed;
+      border-radius: 20px;
+      color: #7c2d12;
+      font-size: 27px;
+      line-height: 1.38;
+      font-weight: 750;
+    }
+
+    .big-number {
+      font-size: 116px;
+      line-height: 1;
+      font-weight: 1000;
+      color: var(--blue);
+    }
+
+    .qrbox {
+      margin-top: 36px;
+      padding: 30px;
+      border-radius: 30px;
+      background: #0f172a;
+      color: #fff;
+    }
+
+    .qrbox p { color: #cbd5e1; font-size: 28px; }
+
+    .linkline {
+      margin-top: 14px;
+      font-size: 25px;
+      color: #bfdbfe;
+      line-height: 1.4;
+      word-break: break-all;
+    }
+  </style>
+</head>
+<body>
+  <section class="card" data-card="1">
+    <span class="tag">善 · 守护需要守护的人</span>
+    <div class="grid2" style="margin-top:34px; grid-template-columns: 410px 1fr;">
+      <div class="phone"><img src="raw-screenshots/01-home.png" alt="EasyPhone AI homepage" /></div>
+      <div>
+        <h1>会教手机，也会劝你先停下</h1>
+        <p class="lead">EasyPhone AI 用 Google Gemini 做风险复检，帮海外华人家庭把“手机求助”变成安全、清楚、可交给家人确认的流程。</p>
+        <div class="panel">
+          <p><strong>参赛方向：</strong>Tech for Good / 适老化 / 出海本地化</p>
+        </div>
+      </div>
+    </div>
+    <div class="footer"><span>EasyPhone AI × Google AI</span><span>#GDG出海创想赛 #Google开发者大会</span></div>
+  </section>
+
+  <section class="card" data-card="2">
+    <span class="tag">真实痛点</span>
+    <h1>爸妈只问：“这个能不能点？”</h1>
+    <p class="lead">海外生活里，银行短信、WhatsApp、政府服务常常是英文；家庭沟通却以中文为主。危险往往就藏在这一步犹豫里。</p>
+    <div class="list">
+      <div class="bubble">英文银行短信里的冻结链接 <small>“Account locked, verify now...”</small></div>
+      <div class="bubble">OTP / 验证码被陌生人索要 <small>“Aunty, send me the six digit code.”</small></div>
+      <div class="bubble">WhatsApp 要求屏幕共享 <small>“Share screen, I help you fix.”</small></div>
+      <div class="bubble">冒充亲属紧急转账 <small>“妈，我换号码了，先 PayNow 一下。”</small></div>
+    </div>
+    <div class="compact-note">说明：这些是代表性测试场景，不是用户访谈数据，也不声称已有落地规模。</div>
+    <div class="footer"><span>问题不是“会不会用手机”</span><span>而是“什么时候应该停”</span></div>
+  </section>
+
+  <section class="card" data-card="3">
+    <span class="tag">产品闭环</span>
+    <h1>不是先回答，而是先判断该不该继续</h1>
+    <div class="grid2" style="grid-template-columns: 1fr 380px; margin-top: 24px;">
+      <div class="flow">
+        <div class="step"><div class="num">1</div><div><strong>长者说出问题</strong><span>中文、英文、中英混合都可以进入分流。</span></div></div>
+        <div class="step"><div class="num">2</div><div><strong>本地规则先判风险</strong><span>转账、验证码、陌生链接、屏幕共享优先拦截。</span></div></div>
+        <div class="step"><div class="num">3</div><div><strong>低风险才继续教学</strong><span>大字、短句、一次只给一步。</span></div></div>
+        <div class="step"><div class="num">4</div><div><strong>高风险生成求助卡</strong><span>停止操作指导，让家人或官方渠道介入。</span></div></div>
+      </div>
+      <div class="wide-shot"><img src="raw-screenshots/02-tutorial-wechat-wide.png" alt="Tutorial demo" /></div>
+    </div>
+    <div class="footer"><span>低风险：教一步</span><span>高风险：先停下</span></div>
+  </section>
+
+  <section class="card" data-card="4">
+    <span class="tag">Google AI 证据现状</span>
+    <h1>Gemini 已接入，真实输出还差一次成功烟雾测试</h1>
+    <div class="status">
+      <div><strong style="color:var(--green)">已完成</strong><span>服务端 Gemini REST 接入、结构化 JSON 输出、只升级不降级、超时降级。</span></div>
+      <div><strong style="color:var(--green)">已验证</strong><span>完整测试 211 项：210 通过，1 项 WCAG AAA 颜色目标跳过；生产构建通过。</span></div>
+      <div><strong style="color:var(--amber)">已尝试</strong><span>AI Studio 中提交审查 prompt，两次返回内部错误，已保存脱敏截图。</span></div>
+      <div><strong style="color:var(--red)">待补齐</strong><span>使用 Gemini API key 跑 <span class="mono">pnpm smoke:gemini</span>，拿到真实 Gemini 响应后再提交。</span></div>
+    </div>
+    <div class="panel">
+      <p><strong>清醒点：</strong>这张不能包装成“Gemini 成功审查”。它只是证明我们尝试了真实 AI Studio 流程，最终提交前还需要成功输出证据。</p>
+    </div>
+    <div class="footer"><span>证据边界要诚实</span><span>不要把失败截图写成成功案例</span></div>
+  </section>
+
+  <section class="card" data-card="5">
+    <span class="tag">安全设计</span>
+    <h1>老人反诈，不能把决定权全交给模型</h1>
+    <div class="list">
+      <div class="item"><span class="dot"></span><span>规则优先：高风险关键词命中后直接拦截，不让模型降级。</span></div>
+      <div class="item"><span class="dot"></span><span>Gemini 只做复检：本地 LOW 场景才让 Gemini 判断是否需要升级。</span></div>
+      <div class="item"><span class="dot"></span><span>严格 JSON：只接受 <span class="mono">keep</span> 或 <span class="mono">escalate</span>。</span></div>
+      <div class="item"><span class="dot"></span><span>失败降级：超时、HTTP 错误、JSON 异常都回到本地规则。</span></div>
+      <div class="item"><span class="dot"></span><span>隐私边界：不在日志里保存密钥、原文短信或真实联系人信息。</span></div>
+    </div>
+    <div class="mini-shots">
+      <img src="raw-screenshots/03-risk-bank.png" alt="Bank risk alert" />
+      <img src="raw-screenshots/04-risk-whatsapp.png" alt="WhatsApp risk alert" />
+      <img src="raw-screenshots/05-ai-studio-internal-error.png" alt="AI Studio attempt" />
+    </div>
+    <div class="footer"><span>模型是辅助</span><span>安全边界必须在产品里</span></div>
+  </section>
+
+  <section class="card" data-card="6">
+    <span class="tag">当前成果</span>
+    <h1>一条低风险路径，一条高风险路径</h1>
+    <div class="grid2" style="margin-top: 28px;">
+      <div class="panel">
+        <div class="big-number">210</div>
+        <p><strong>项测试通过</strong><br />共 211 项，1 项 WCAG AAA 颜色目标跳过；生产构建通过。</p>
+      </div>
+      <div class="panel">
+        <div class="big-number" style="color:var(--red)">0</div>
+        <p><strong>项失败</strong><br />核心功能可运行，不只是 PPT 或静态概念 Demo。</p>
+      </div>
+    </div>
+    <div class="mini-shots">
+      <img src="raw-screenshots/02-tutorial-wechat-wide.png" alt="Tutorial result" />
+      <img src="raw-screenshots/03-risk-bank.png" alt="Risk result" />
+      <img src="raw-screenshots/01-home.png" alt="Home result" />
+    </div>
+    <div class="compact-note">最短补齐动作：配置 Gemini API key，跑真实烟雾测试，把成功输出补进第 4 张和正文。</div>
+    <div class="footer"><span>Demo 已部署</span><span>Gemini 成功输出证据待补</span></div>
+  </section>
+
+  <section class="card" data-card="7">
+    <span class="tag">提交材料</span>
+    <h1>先把文字安全链路跑稳，再扩展截图多模态</h1>
+    <div class="list">
+      <div class="item"><span class="dot"></span><span>已完成：文字/语音输入、分步教程、风险拦截、家人求助卡。</span></div>
+      <div class="item"><span class="dot"></span><span>已公开：GitHub 参赛分支和 Vercel Preview。</span></div>
+      <div class="item"><span class="dot"></span><span>待补：Gemini API 真实成功截图、小红书发布链接、报名表提交。</span></div>
+      <div class="item"><span class="dot"></span><span>不夸大：不写用户规模、不写准确率、不写“已落地新加坡”。</span></div>
+    </div>
+    <div class="qrbox">
+      <p>GitHub</p>
+      <div class="linkline">github.com/qrx-joe/EasyPhone_AI/tree/contest/google-ai-vibeathon-2026</div>
+      <p style="margin-top:26px;">在线 Demo</p>
+      <div class="linkline">easy-phone-ai-git-contest-google-ai-vi-c361ce-qrx-joes-projects.vercel.app</div>
+    </div>
+    <div class="panel">
+      <p><strong>必带话题：</strong>#GDG出海创想赛 #Google开发者大会 #GoogleAI #VibeCoding #科技向善</p>
+    </div>
+    <div class="footer"><span>提交前最后检查</span><span>7.15 截止，需确认表单是否仍可提交</span></div>
+  </section>
+
+  <script>
+    const id = location.hash.replace("#", "");
+    if (id) {
+      document.body.classList.add("single");
+      const active = document.querySelector(`[data-card="${id}"]`);
+      if (active) active.classList.add("active");
+    }
+  </script>
+</body>
+</html>
